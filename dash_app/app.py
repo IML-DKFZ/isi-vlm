@@ -7,51 +7,18 @@ import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 import skimage
-from PIL import Image
-import numpy as np
-import base64
-from io import BytesIO
 import torch
-import gc
 import os
 import sys
 
 sys.path.append(os.getcwd())
 
-from llava.constants import IMAGE_TOKEN_INDEX
-from llava.conversation import conv_templates
-from llava.data_utils.model_utils import tokenizer_image_token, deal_with_prompt
-from llava.data_utils.data_utils import (
-    construct_prompt,
-    process_single_sample,
-    load_yaml,
-)
-from llava.data_utils.model_utils import call_llava_engine_df, llava_image_processor
+from dash_app.utils.run_llava import llava_inference
 from llava.data_utils.set_seed import set_seed
-from llava.model.builder import load_pretrained_model
-from llava.mm_utils import get_model_name_from_path
 
-device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
+from dash_app.utils.image_export import plotly_fig2PIL, pil_to_b64
+
 set_seed(42)
-
-processor = None
-call_model_engine = call_llava_engine_df
-vis_process_func = llava_image_processor
-
-
-def plotly_fig2PIL(fig):
-    fig_bytes = fig.to_image(format="png")
-    buf = BytesIO(fig_bytes)
-    img = Image.open(buf)
-    return img
-
-
-def pil_to_b64(im, ext="png"):
-    buffer = BytesIO()
-    im.save(buffer, format=ext)
-    encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
-    return f"data:image/{ext};base64, " + encoded
 
 
 # Initialize the app - incorporate a Dash Bootstrap theme
@@ -60,7 +27,9 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 files = pd.read_csv("./dash_app/assets/files.csv")
 
-options = [{"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))]
+options = [
+    {"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))
+]
 
 NAVBAR = dbc.Navbar(
     dbc.Container(
@@ -352,9 +321,13 @@ def update_input_text(value):
 )
 def fig_perturb(value, color_value):
 
-    fig = px.imshow(skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value]))
+    fig = px.imshow(
+        skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
+    )
     fig.update_layout(
-        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        ),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
         yaxis_visible=False,
@@ -367,20 +340,28 @@ def fig_perturb(value, color_value):
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     Input("color_picker", "value"),
     State(component_id="fig_perturb", component_property="figure"),
     prevent_initial_call=True,
 )
 def update_fig_style(color_value, figure):
     fig = go.Figure(figure)
-    fig.update_layout(newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)))
+    fig.update_layout(
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        )
+    )
 
     return fig
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     [
         State(component_id="fig_perturb", component_property="figure"),
         State(component_id="text_input_fig", component_property="value"),
@@ -463,7 +444,9 @@ RIGHT_OUTPUT = [
         [
             dbc.CardHeader(
                 [
-                    html.H4("Generated Output", className="card-title", id="output_header"),
+                    html.H4(
+                        "Generated Output", className="card-title", id="output_header"
+                    ),
                 ]
             ),
             dbc.CardBody(
@@ -510,43 +493,9 @@ def update_input_text(n_clicks, value):
         State(component_id="fig_perturb", component_property="figure"),
     ],
 )
-def llava_inference(n_clicks, input_text, input_question, figure):
+def llava_output(n_clicks, input_text, input_question, figure):
     if not (n_clicks == None):
-        gc.collect()
-        torch.cuda.empty_cache()
-        # load model
-        model_name = get_model_name_from_path("liuhaotian/llava-v1.5-13b")
-        tokenizer, model, vis_processors, _ = load_pretrained_model(
-            "liuhaotian/llava-v1.5-13b", None, model_name, load_4bit=True
-        )
-
-        input_prompt = input_text + " " + input_question
-        fig = go.Figure(figure)
-        input_image = plotly_fig2PIL(fig)
-
-        input_image = vis_process_func(input_image, vis_processors).to(device)
-
-        conv = conv_templates["vicuna_v1"].copy()
-        conv.append_message(conv.roles[0], input_prompt)
-        conv.append_message(conv.roles[1], None)
-        input_prompt = conv.get_prompt()
-        input_prompt = deal_with_prompt(input_prompt, model.config.mm_use_im_start_end)
-        input_ids = (
-            tokenizer_image_token(input_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).cuda()
-        )
-
-        output_ids = model.generate(
-            input_ids,
-            images=input_image.unsqueeze(0).half().cuda(),
-            do_sample=True,
-            temperature=1,
-            top_p=None,
-            num_beams=5,
-            max_new_tokens=128,
-            use_cache=False,
-        )
-
-        response = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
+        response = llava_inference(input_text, input_question, figure)
         return response
 
 

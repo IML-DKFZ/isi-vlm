@@ -27,12 +27,17 @@ def select_best_resolution(original_size, possible_resolutions):
 
     for width, height in possible_resolutions:
         scale = min(width / original_width, height / original_height)
-        downscaled_width, downscaled_height = int(original_width * scale), int(original_height * scale)
-        effective_resolution = min(downscaled_width * downscaled_height, original_width * original_height)
+        downscaled_width, downscaled_height = int(original_width * scale), int(
+            original_height * scale
+        )
+        effective_resolution = min(
+            downscaled_width * downscaled_height, original_width * original_height
+        )
         wasted_resolution = (width * height) - effective_resolution
 
         if effective_resolution > max_effective_resolution or (
-            effective_resolution == max_effective_resolution and wasted_resolution < min_wasted_resolution
+            effective_resolution == max_effective_resolution
+            and wasted_resolution < min_wasted_resolution
         ):
             max_effective_resolution = effective_resolution
             min_wasted_resolution = wasted_resolution
@@ -139,11 +144,14 @@ def process_anyres_image(image, processor, grid_pinpoints):
 
     patches = divide_to_patches(image_padded, processor.crop_size["height"])
 
-    image_original_resize = image.resize((processor.size["shortest_edge"], processor.size["shortest_edge"]))
+    image_original_resize = image.resize(
+        (processor.size["shortest_edge"], processor.size["shortest_edge"])
+    )
 
     image_patches = [image_original_resize] + patches
     image_patches = [
-        processor.preprocess(image_patch, return_tensors="pt")["pixel_values"][0] for image_patch in image_patches
+        processor.preprocess(image_patch, return_tensors="pt")["pixel_values"][0]
+        for image_patch in image_patches
     ]
     return torch.stack(image_patches, dim=0)
 
@@ -171,12 +179,18 @@ def process_images(images, image_processor, model_cfg):
     new_images = []
     if image_aspect_ratio == "pad":
         for image in images:
-            image = expand2square(image, tuple(int(x * 255) for x in image_processor.image_mean))
-            image = image_processor.preprocess(image, return_tensors="pt")["pixel_values"][0]
+            image = expand2square(
+                image, tuple(int(x * 255) for x in image_processor.image_mean)
+            )
+            image = image_processor.preprocess(image, return_tensors="pt")[
+                "pixel_values"
+            ][0]
             new_images.append(image)
     elif image_aspect_ratio == "anyres":
         for image in images:
-            image = process_anyres_image(image, image_processor, model_cfg.image_grid_pinpoints)
+            image = process_anyres_image(
+                image, image_processor, model_cfg.image_grid_pinpoints
+            )
             new_images.append(image)
     else:
         return image_processor(images, return_tensors="pt")["pixel_values"]
@@ -185,7 +199,9 @@ def process_images(images, image_processor, model_cfg):
     return new_images
 
 
-def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None):
+def tokenizer_image_token(
+    prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None
+):
     prompt_chunks = [tokenizer(chunk).input_ids for chunk in prompt.split("<image>")]
 
     def insert_separator(X, sep):
@@ -193,7 +209,11 @@ def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX
 
     input_ids = []
     offset = 0
-    if len(prompt_chunks) > 0 and len(prompt_chunks[0]) > 0 and prompt_chunks[0][0] == tokenizer.bos_token_id:
+    if (
+        len(prompt_chunks) > 0
+        and len(prompt_chunks[0]) > 0
+        and prompt_chunks[0][0] == tokenizer.bos_token_id
+    ):
         offset = 1
         input_ids.append(prompt_chunks[0][0])
 
@@ -223,7 +243,10 @@ class KeywordsStoppingCriteria(StoppingCriteria):
         self.max_keyword_len = 0
         for keyword in keywords:
             cur_keyword_ids = tokenizer(keyword).input_ids
-            if len(cur_keyword_ids) > 1 and cur_keyword_ids[0] == tokenizer.bos_token_id:
+            if (
+                len(cur_keyword_ids) > 1
+                and cur_keyword_ids[0] == tokenizer.bos_token_id
+            ):
                 cur_keyword_ids = cur_keyword_ids[1:]
             if len(cur_keyword_ids) > self.max_keyword_len:
                 self.max_keyword_len = len(cur_keyword_ids)
@@ -231,20 +254,28 @@ class KeywordsStoppingCriteria(StoppingCriteria):
         self.tokenizer = tokenizer
         self.start_len = input_ids.shape[1]
 
-    def call_for_batch(self, output_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+    def call_for_batch(
+        self, output_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
         offset = min(output_ids.shape[1] - self.start_len, self.max_keyword_len)
-        self.keyword_ids = [keyword_id.to(output_ids.device) for keyword_id in self.keyword_ids]
+        self.keyword_ids = [
+            keyword_id.to(output_ids.device) for keyword_id in self.keyword_ids
+        ]
         for keyword_id in self.keyword_ids:
             truncated_output_ids = output_ids[0, -keyword_id.shape[0] :]
             if torch.equal(truncated_output_ids, keyword_id):
                 return True
-        outputs = self.tokenizer.batch_decode(output_ids[:, -offset:], skip_special_tokens=True)[0]
+        outputs = self.tokenizer.batch_decode(
+            output_ids[:, -offset:], skip_special_tokens=True
+        )[0]
         for keyword in self.keywords:
             if keyword in outputs:
                 return True
         return False
 
-    def __call__(self, output_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+    def __call__(
+        self, output_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
         outputs = []
         for i in range(output_ids.shape[0]):
             outputs.append(self.call_for_batch(output_ids[i].unsqueeze(0), scores))

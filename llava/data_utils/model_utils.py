@@ -1,19 +1,32 @@
 from random import random
 import torch
-from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
+from llava.constants import (
+    IMAGE_TOKEN_INDEX,
+    DEFAULT_IMAGE_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IM_END_TOKEN,
+)
 from llava.conversation import conv_templates, SeparatorStyle
 
 
 def call_llava_engine_df(args, sample, model, tokenizer=None, processor=None):
-    def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None):
-        prompt_chunks = [tokenizer(chunk).input_ids for chunk in prompt.split("<image>")]
+    def tokenizer_image_token(
+        prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None
+    ):
+        prompt_chunks = [
+            tokenizer(chunk).input_ids for chunk in prompt.split("<image>")
+        ]
 
         def insert_separator(X, sep):
             return [ele for sublist in zip(X, [sep] * len(X)) for ele in sublist][:-1]
 
         input_ids = []
         offset = 0
-        if len(prompt_chunks) > 0 and len(prompt_chunks[0]) > 0 and prompt_chunks[0][0] == tokenizer.bos_token_id:
+        if (
+            len(prompt_chunks) > 0
+            and len(prompt_chunks[0]) > 0
+            and prompt_chunks[0][0] == tokenizer.bos_token_id
+        ):
             offset = 1
             input_ids.append(prompt_chunks[0][0])
 
@@ -29,7 +42,13 @@ def call_llava_engine_df(args, sample, model, tokenizer=None, processor=None):
     def deal_with_prompt(input_text, mm_use_im_start_end):
         qs = input_text
         if mm_use_im_start_end:
-            qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + qs
+            qs = (
+                DEFAULT_IM_START_TOKEN
+                + DEFAULT_IMAGE_TOKEN
+                + DEFAULT_IM_END_TOKEN
+                + "\n"
+                + qs
+            )
         else:
             qs = DEFAULT_IMAGE_TOKEN + "\n" + qs
         return qs
@@ -41,8 +60,15 @@ def call_llava_engine_df(args, sample, model, tokenizer=None, processor=None):
     # conv.append_message(conv.roles[1], None)
     # prompt = conv.get_prompt()
     # prompt = prompt.split("ASSISTANT")[0][:-12] + " and provide an explanation why you chose this answer. ASSISTANT:"
-    prompt.split("Answer with")[0] + "Answer the question and explain why you chose this answer"
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).cuda()
+    (
+        prompt.split("Answer with")[0]
+        + "Answer the question and explain why you chose this answer"
+    )
+    input_ids = (
+        tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
+        .unsqueeze(0)
+        .cuda()
+    )
     image = sample["image"]
     if image is not None:
         output_ids = model.generate(
@@ -72,11 +98,15 @@ def call_llava_engine_df(args, sample, model, tokenizer=None, processor=None):
 
 
 def llava_image_processor(raw_image, vis_processors=None):
-    image_tensor = vis_processors.preprocess(raw_image, return_tensors="pt")["pixel_values"][0]
+    image_tensor = vis_processors.preprocess(raw_image, return_tensors="pt")[
+        "pixel_values"
+    ][0]
     return image_tensor
 
 
-def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None):
+def tokenizer_image_token(
+    prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None
+):
     prompt_chunks = [tokenizer(chunk).input_ids for chunk in prompt.split("<image>")]
 
     def insert_separator(X, sep):
@@ -84,7 +114,11 @@ def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX
 
     input_ids = []
     offset = 0
-    if len(prompt_chunks) > 0 and len(prompt_chunks[0]) > 0 and prompt_chunks[0][0] == tokenizer.bos_token_id:
+    if (
+        len(prompt_chunks) > 0
+        and len(prompt_chunks[0]) > 0
+        and prompt_chunks[0][0] == tokenizer.bos_token_id
+    ):
         offset = 1
         input_ids.append(prompt_chunks[0][0])
 
@@ -101,7 +135,13 @@ def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX
 def deal_with_prompt(input_text, mm_use_im_start_end):
     qs = input_text
     if mm_use_im_start_end:
-        qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + qs
+        qs = (
+            DEFAULT_IM_START_TOKEN
+            + DEFAULT_IMAGE_TOKEN
+            + DEFAULT_IM_END_TOKEN
+            + "\n"
+            + qs
+        )
     else:
         qs = DEFAULT_IMAGE_TOKEN + "\n" + qs
     return qs
