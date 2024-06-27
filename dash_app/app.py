@@ -28,7 +28,9 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 files = pd.read_csv("./dash_app/assets/files.csv")
 
-options = [{"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))]
+options = [
+    {"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))
+]
 
 NAVBAR = dbc.Navbar(
     dbc.Container(
@@ -134,7 +136,11 @@ LEFT_CONTAINER = [
                                             color="primary",
                                             className="me-1",
                                             id="random_image_button",
-                                            style={"margin-bottom": "20px", "margin-left": "0px", "align": "left"},
+                                            style={
+                                                "margin-bottom": "20px",
+                                                "margin-left": "0px",
+                                                "align": "left",
+                                            },
                                         ),
                                         width=3,
                                     ),
@@ -262,7 +268,10 @@ LEFT_CONTAINER = [
                                                 className="d-grid gap-2 col-10 mx-auto",
                                             ),
                                         ],
-                                        style={"display": "inline-block", "float": "left"},
+                                        style={
+                                            "display": "inline-block",
+                                            "float": "left",
+                                        },
                                     )
                                 ),
                                 html.B("Gaussian Noise"),
@@ -328,7 +337,11 @@ LEFT_CONTAINER = [
                             color="primary",
                             className="me-1",
                             id="random_text_button",
-                            style={"margin-bottom": "10px", "margin-left": "0px", "align": "left"},
+                            style={
+                                "margin-bottom": "10px",
+                                "margin-left": "0px",
+                                "align": "left",
+                            },
                         ),
                         width=3,
                     ),
@@ -406,9 +419,13 @@ def text_random(n_clicks):
 )
 def fig_perturb(value, color_value):
 
-    fig = px.imshow(skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value]))
+    fig = px.imshow(
+        skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
+    )
     fig.update_layout(
-        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        ),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
         yaxis_visible=False,
@@ -421,16 +438,22 @@ def fig_perturb(value, color_value):
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     Input(component_id="random_image_button", component_property="n_clicks"),
     State("color_picker", "value"),
     prevent_initial_call=True,
 )
 def fig_random(n_clicks, color_value):
     value = np.random.randint(len(files["input_image"]))
-    fig = px.imshow(skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value]))
+    fig = px.imshow(
+        skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
+    )
     fig.update_layout(
-        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        ),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
         yaxis_visible=False,
@@ -443,7 +466,9 @@ def fig_random(n_clicks, color_value):
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     Input(component_id="noise_button", component_property="n_clicks"),
     [
         State("color_picker", "value"),
@@ -454,10 +479,14 @@ def fig_random(n_clicks, color_value):
 )
 def fig_gaussian_noise(n_clicks, color_value, value, std):
     img = skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
-    noised_image = np.round(random_noise(img, mode="gaussian", var=std**2) * 255).astype(np.uint8)
+    noised_image = np.round(
+        random_noise(img, mode="gaussian", var=std**2) * 255
+    ).astype(np.uint8)
     fig = px.imshow(noised_image)
     fig.update_layout(
-        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        ),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
         yaxis_visible=False,
@@ -470,20 +499,28 @@ def fig_gaussian_noise(n_clicks, color_value, value, std):
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     Input("color_picker", "value"),
     State(component_id="fig_perturb", component_property="figure"),
     prevent_initial_call=True,
 )
 def update_fig_style(color_value, figure):
     fig = go.Figure(figure)
-    fig.update_layout(newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)))
+    fig.update_layout(
+        newshape=dict(
+            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
+        )
+    )
 
     return fig
 
 
 @callback(
-    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Output(
+        component_id="fig_perturb", component_property="figure", allow_duplicate=True
+    ),
     [
         State(component_id="fig_perturb", component_property="figure"),
         State(component_id="text_input_fig", component_property="value"),
@@ -566,7 +603,9 @@ RIGHT_OUTPUT = [
         [
             dbc.CardHeader(
                 [
-                    html.H4("Generated Output", className="card-title", id="output_header"),
+                    html.H4(
+                        "Generated Output", className="card-title", id="output_header"
+                    ),
                 ]
             ),
             dbc.CardBody(
