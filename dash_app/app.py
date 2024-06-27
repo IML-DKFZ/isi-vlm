@@ -7,7 +7,8 @@ import plotly.graph_objs as go
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 import skimage
-import torch
+from skimage.util import random_noise
+import numpy as np
 import os
 import sys
 
@@ -27,9 +28,7 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 files = pd.read_csv("./dash_app/assets/files.csv")
 
-options = [
-    {"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))
-]
+options = [{"label": i, "value": j} for i, j in zip(files["name"], range(len(files["name"])))]
 
 NAVBAR = dbc.Navbar(
     dbc.Container(
@@ -97,156 +96,216 @@ LEFT_CONTAINER = [
             dbc.Row(
                 [
                     dbc.Col(
-                        dcc.Graph(
-                            id="fig_perturb",
-                            figure={},
-                            config={
-                                "modeBarButtonsToAdd": [
-                                    "drawrect",
-                                    "eraseshape",
-                                    "drawline",
-                                ],
-                                "modeBarButtonsToRemove": [
-                                    "zoom",
-                                    "pan",
-                                    "zoomIn",
-                                    "zoomOut",
-                                    "autoScale",
-                                    "resetScale",
-                                ],
-                                "displayModeBar": True,
-                                "displaylogo": False,
-                                "editable": True,
-                                "edits": {
-                                    "shapePosition": True,
-                                    "annotationPosition": True,
+                        [
+                            dcc.Graph(
+                                id="fig_perturb",
+                                figure={},
+                                config={
+                                    "modeBarButtonsToAdd": [
+                                        "drawrect",
+                                        "eraseshape",
+                                        "drawline",
+                                    ],
+                                    "modeBarButtonsToRemove": [
+                                        "zoom",
+                                        "pan",
+                                        "zoomIn",
+                                        "zoomOut",
+                                        "autoScale",
+                                        "resetScale",
+                                    ],
+                                    "displayModeBar": True,
+                                    "displaylogo": False,
+                                    "editable": True,
+                                    "edits": {
+                                        "shapePosition": True,
+                                        "annotationPosition": True,
+                                    },
                                 },
-                            },
-                            style={
-                                "margin-bottom": "20px",
-                            },
-                        ),
+                                style={
+                                    "margin-bottom": "10px",
+                                },
+                            ),
+                            dbc.Row(
+                                [
+                                    dbc.Col(
+                                        dbc.Button(
+                                            "Random Image",
+                                            color="primary",
+                                            className="me-1",
+                                            id="random_image_button",
+                                            style={"margin-bottom": "20px", "margin-left": "0px", "align": "left"},
+                                        ),
+                                        width=3,
+                                    ),
+                                    dbc.Col(width=9),
+                                ]
+                            ),
+                        ],
                         width=9,
                     ),
                     dbc.Col(
-                        [
-                            dbc.Row(
-                                dbc.Col(
-                                    [
-                                        html.H5("Color Picker"),
-                                        dbc.Input(
-                                            type="color",
-                                            id="color_picker",
-                                            value="#000000",
-                                            style={
-                                                "width": 75,
-                                                "height": 50,
-                                                "margin-bottom": "10px",
-                                            },
-                                        ),
-                                        html.H5("Text Annotation"),
-                                        dbc.Input(
-                                            id="text_input_fig",
-                                            placeholder="Text",
-                                            type="text",
-                                            style={
-                                                "margin-bottom": "10px",
-                                            },
-                                        ),
-                                        dbc.Row(
-                                            [
-                                                dbc.Col(
-                                                    daq.NumericInput(
-                                                        id="text_size",
-                                                        value=16,
-                                                        min=0,
-                                                        max=100,
-                                                        style={
-                                                            "margin-bottom": "10px",
-                                                        },
-                                                    ),
-                                                    width=4,
-                                                ),
-                                                dbc.Col(
-                                                    html.P(
-                                                        "Text Size",
-                                                        style={"textAlign": "left"},
-                                                    ),
-                                                    width=8,
-                                                ),
-                                            ]
-                                        ),
-                                        dbc.Row(
-                                            [
-                                                dbc.Col(
-                                                    dbc.Checklist(
-                                                        options=[
-                                                            {
-                                                                "label": "",
-                                                                "value": True,
-                                                            },
-                                                        ],
-                                                        value=[],
-                                                        id="switche_arrow",
-                                                        inline=True,
-                                                        switch=True,
-                                                        style={
-                                                            "margin-bottom": "10px",
-                                                            "margin-left": "0px",
-                                                        },
-                                                    ),
-                                                    width=4,
-                                                ),
-                                                dbc.Col(
-                                                    html.P(
-                                                        "Add Arrow",
-                                                        style={"textAlign": "left"},
-                                                    ),
-                                                    width=8,
-                                                ),
-                                            ]
-                                        ),
-                                        dbc.Row(
-                                            [
-                                                dbc.Col(
-                                                    daq.NumericInput(
-                                                        id="arrow_size",
-                                                        value=2,
-                                                        min=0,
-                                                        max=10,
-                                                        style={
-                                                            "margin-bottom": "10px",
-                                                        },
-                                                    ),
-                                                    width=4,
-                                                ),
-                                                dbc.Col(
-                                                    html.P(
-                                                        "Arrow Size",
-                                                        style={"textAlign": "left"},
-                                                    ),
-                                                    width=8,
-                                                ),
-                                            ]
-                                        ),
-                                        dbc.Row(
-                                            dbc.Button(
-                                                "New Text",
-                                                color="primary",
-                                                className="me-1",
-                                                id="new_button",
+                        html.Div(
+                            [
+                                dbc.Row(
+                                    dbc.Col(
+                                        [
+                                            html.H5("Perturbations"),
+                                            html.Hr(className="my-2"),
+                                            html.B("Color Picker"),
+                                            dbc.Input(
+                                                type="color",
+                                                id="color_picker",
+                                                value="#000000",
                                                 style={
+                                                    "width": 75,
+                                                    "height": 50,
                                                     "margin-bottom": "10px",
-                                                    "margin-left": "0px",
                                                 },
                                             ),
-                                            className="d-grid gap-2 col-10 mx-auto",
+                                            html.B("Text Annotation"),
+                                            dbc.Input(
+                                                id="text_input_fig",
+                                                placeholder="Text",
+                                                type="text",
+                                                style={
+                                                    "margin-bottom": "10px",
+                                                },
+                                            ),
+                                            dbc.Row(
+                                                [
+                                                    dbc.Col(
+                                                        daq.NumericInput(
+                                                            id="text_size",
+                                                            value=16,
+                                                            min=0,
+                                                            max=100,
+                                                            style={
+                                                                "margin-bottom": "10px",
+                                                            },
+                                                        ),
+                                                        width=4,
+                                                    ),
+                                                    dbc.Col(
+                                                        html.P(
+                                                            "Text Size",
+                                                            style={"textAlign": "left"},
+                                                        ),
+                                                        width=8,
+                                                    ),
+                                                ]
+                                            ),
+                                            dbc.Row(
+                                                [
+                                                    dbc.Col(
+                                                        dbc.Checklist(
+                                                            options=[
+                                                                {
+                                                                    "label": "",
+                                                                    "value": True,
+                                                                },
+                                                            ],
+                                                            value=[],
+                                                            id="switche_arrow",
+                                                            inline=True,
+                                                            switch=True,
+                                                            style={
+                                                                "margin-bottom": "10px",
+                                                                "margin-left": "0px",
+                                                            },
+                                                        ),
+                                                        width=4,
+                                                    ),
+                                                    dbc.Col(
+                                                        html.P(
+                                                            "Add Arrow",
+                                                            style={"textAlign": "left"},
+                                                        ),
+                                                        width=8,
+                                                    ),
+                                                ]
+                                            ),
+                                            dbc.Row(
+                                                [
+                                                    dbc.Col(
+                                                        daq.NumericInput(
+                                                            id="arrow_size",
+                                                            value=2,
+                                                            min=0,
+                                                            max=10,
+                                                            style={
+                                                                "margin-bottom": "10px",
+                                                            },
+                                                        ),
+                                                        width=4,
+                                                    ),
+                                                    dbc.Col(
+                                                        html.P(
+                                                            "Arrow Size",
+                                                            style={"textAlign": "left"},
+                                                        ),
+                                                        width=8,
+                                                    ),
+                                                ]
+                                            ),
+                                            dbc.Row(
+                                                dbc.Button(
+                                                    "New Text",
+                                                    color="primary",
+                                                    className="me-1",
+                                                    id="new_button",
+                                                    style={
+                                                        "margin-bottom": "10px",
+                                                        "margin-left": "0px",
+                                                    },
+                                                ),
+                                                className="d-grid gap-2 col-10 mx-auto",
+                                            ),
+                                        ],
+                                        style={"display": "inline-block", "float": "left"},
+                                    )
+                                ),
+                                html.B("Gaussian Noise"),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            daq.PrecisionInput(
+                                                id="noise_level",
+                                                value=0.2,
+                                                min=0,
+                                                max=10,
+                                                precision=2,
+                                                style={
+                                                    "margin-bottom": "10px",
+                                                },
+                                            ),
+                                            width=6,
                                         ),
-                                    ],
-                                    style={"display": "inline-block", "float": "left"},
-                                )
-                            ),
-                        ],
+                                        dbc.Col(
+                                            html.P(
+                                                "Sigma",
+                                                style={"textAlign": "left"},
+                                            ),
+                                            width=6,
+                                        ),
+                                    ]
+                                ),
+                                dbc.Row(
+                                    dbc.Button(
+                                        "Impute",
+                                        color="primary",
+                                        className="me-1",
+                                        id="noise_button",
+                                        style={
+                                            "margin-bottom": "10px",
+                                            "margin-left": "0px",
+                                        },
+                                    ),
+                                    className="d-grid gap-2 col-10 mx-auto",
+                                ),
+                            ],
+                            className="h-100 p-3 bg-light text-dark border rounded-3",
+                        ),
                         width=3,
                     ),
                 ]
@@ -260,6 +319,21 @@ LEFT_CONTAINER = [
                     ],
                     className="mb-3",
                 )
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Button(
+                            "Random Text",
+                            color="primary",
+                            className="me-1",
+                            id="random_text_button",
+                            style={"margin-bottom": "10px", "margin-left": "0px", "align": "left"},
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(width=9),
+                ]
             ),
             dbc.Row(html.H4("Input Question")),
             dbc.Row(
@@ -315,19 +389,26 @@ def update_input_text(value):
 
 
 @callback(
+    Output(component_id="input_text", component_property="value", allow_duplicate=True),
+    Input(component_id="random_text_button", component_property="n_clicks"),
+    prevent_initial_call=True,
+)
+def text_random(n_clicks):
+    value = np.random.randint(len(files["input_text"]))
+    text = files["input_text"].iloc[value]
+    return text
+
+
+@callback(
     Output(component_id="fig_perturb", component_property="figure"),
     Input(component_id="dropdown_obs", component_property="value"),
     State("color_picker", "value"),
 )
 def fig_perturb(value, color_value):
 
-    fig = px.imshow(
-        skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
-    )
+    fig = px.imshow(skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value]))
     fig.update_layout(
-        newshape=dict(
-            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
-        ),
+        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
         yaxis_visible=False,
@@ -340,28 +421,69 @@ def fig_perturb(value, color_value):
 
 
 @callback(
-    Output(
-        component_id="fig_perturb", component_property="figure", allow_duplicate=True
-    ),
-    Input("color_picker", "value"),
-    State(component_id="fig_perturb", component_property="figure"),
+    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Input(component_id="random_image_button", component_property="n_clicks"),
+    State("color_picker", "value"),
     prevent_initial_call=True,
 )
-def update_fig_style(color_value, figure):
-    fig = go.Figure(figure)
+def fig_random(n_clicks, color_value):
+    value = np.random.randint(len(files["input_image"]))
+    fig = px.imshow(skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value]))
     fig.update_layout(
-        newshape=dict(
-            fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
-        )
+        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        dragmode="drawrect",
+        yaxis_visible=False,
+        yaxis_showticklabels=False,
+        xaxis_visible=False,
+        xaxis_showticklabels=False,
     )
 
     return fig
 
 
 @callback(
-    Output(
-        component_id="fig_perturb", component_property="figure", allow_duplicate=True
-    ),
+    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Input(component_id="noise_button", component_property="n_clicks"),
+    [
+        State("color_picker", "value"),
+        State(component_id="dropdown_obs", component_property="value"),
+        State(component_id="noise_level", component_property="value"),
+    ],
+    prevent_initial_call=True,
+)
+def fig_gaussian_noise(n_clicks, color_value, value, std):
+    img = skimage.io.imread("./dash_app/assets/" + files["input_image"].iloc[value])
+    noised_image = np.round(random_noise(img, mode="gaussian", var=std**2) * 255).astype(np.uint8)
+    fig = px.imshow(noised_image)
+    fig.update_layout(
+        newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)),
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        dragmode="drawrect",
+        yaxis_visible=False,
+        yaxis_showticklabels=False,
+        xaxis_visible=False,
+        xaxis_showticklabels=False,
+    )
+
+    return fig
+
+
+@callback(
+    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
+    Input("color_picker", "value"),
+    State(component_id="fig_perturb", component_property="figure"),
+    prevent_initial_call=True,
+)
+def update_fig_style(color_value, figure):
+    fig = go.Figure(figure)
+    fig.update_layout(newshape=dict(fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)))
+
+    return fig
+
+
+@callback(
+    Output(component_id="fig_perturb", component_property="figure", allow_duplicate=True),
     [
         State(component_id="fig_perturb", component_property="figure"),
         State(component_id="text_input_fig", component_property="value"),
@@ -444,9 +566,7 @@ RIGHT_OUTPUT = [
         [
             dbc.CardHeader(
                 [
-                    html.H4(
-                        "Generated Output", className="card-title", id="output_header"
-                    ),
+                    html.H4("Generated Output", className="card-title", id="output_header"),
                 ]
             ),
             dbc.CardBody(
