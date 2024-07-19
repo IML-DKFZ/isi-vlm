@@ -46,17 +46,16 @@ def llava_inference(input_text, input_question, figure):
         .unsqueeze(0)
         .cuda()
     )
-
-    output_ids = model.generate(
-        input_ids,
-        images=input_image.unsqueeze(0).half().cuda(),
-        do_sample=True,
-        temperature=1,
-        top_p=None,
-        num_beams=5,
-        max_new_tokens=128,
-        use_cache=False,
-    )
+    with torch.no_grad():
+        output_ids = model.generate(
+            input_ids,
+            images=input_image.unsqueeze(0).half().cuda(),
+            do_sample=True,
+            temperature=1,
+            num_beams=3,
+            max_new_tokens=128,
+            use_cache=False,
+        )
 
     response = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
     return response

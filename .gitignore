@@ -1,2 +1,4 @@
 .vscode
 **/__pycache__/
+**/natural_images/
+**/annotated_images/

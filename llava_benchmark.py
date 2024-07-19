@@ -1,39 +1,22 @@
 import torch
-import os
-import random
-import sys
-
-import numpy as np
-from tqdm import tqdm
 import skimage
 import pandas as pd
 
-from datasets import load_dataset, concatenate_datasets
+
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path
 
-from argparse import ArgumentParser
 
-from llava.data_utils.data_utils import (
-    load_yaml,
-    construct_prompt,
-    save_json,
-    process_single_sample,
-    CAT_SHORT2LONG,
-)
 from llava.data_utils.model_utils import call_llava_engine_df, llava_image_processor
-from llava.data_utils.eval_utils import parse_multi_choice_response, parse_open_response
 from llava.data_utils.set_seed import set_seed
 
 from llava.constants import (
     IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
 )
-from llava.conversation import conv_templates, SeparatorStyle
+from llava.conversation import conv_templates
 from llava.data_utils.model_utils import tokenizer_image_token, deal_with_prompt
 import gc
+
 
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 set_seed(42)
@@ -69,7 +52,12 @@ torch.cuda.empty_cache()
 # load model
 model_name = get_model_name_from_path("liuhaotian/llava-v1.5-13b")
 tokenizer, model, vis_processors, _ = load_pretrained_model(
-    "liuhaotian/llava-v1.5-13b", None, model_name, load_4bit=True, device_map= "auto",
+    "liuhaotian/llava-v1.5-13b",
+    None,
+    model_name,
+    load_4bit=None,
+    load_8bit=None,
+    device_map=None,
 )
 
 input_prompt = files["input_text"].iloc[0] + " " + files["input_question"].iloc[0]
@@ -90,7 +78,7 @@ input_ids = (
     .cuda()
 )
 
-#model.compile()
+# model.compile()
 
 with torch.no_grad():
     output_ids, time = timed(model)
