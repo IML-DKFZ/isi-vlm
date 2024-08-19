@@ -2,60 +2,100 @@ import gc
 import torch
 import plotly.graph_objs as go
 
-from llava.constants import IMAGE_TOKEN_INDEX
-from llava.conversation import conv_templates
-from llava.data_utils.model_utils import tokenizer_image_token, deal_with_prompt
-from llava.data_utils.model_utils import call_llava_engine_df, llava_image_processor
-from llava.data_utils.set_seed import set_seed
-from llava.model.builder import load_pretrained_model
-from llava.mm_utils import get_model_name_from_path
+from transformers import (
+    AutoProcessor,
+    AutoModelForPreTraining,
+    LlavaNextProcessor,
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    LlavaNextForConditionalGeneration,
+    BitsAndBytesConfig,
+    AutoProcessor,
+    LlavaForConditionalGeneration,
+)
 
 from dash_app.utils.image_export import plotly_fig2PIL
 
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
-processor = None
-call_model_engine = call_llava_engine_df
-vis_process_func = llava_image_processor
-
-
-def llava_inference(input_text, input_question, figure):
+def llava_inference(input_text, input_question, figure, llava_version, load_4bit):
     gc.collect()
     torch.cuda.empty_cache()
-    # load model
-    model_name = get_model_name_from_path("liuhaotian/llava-v1.5-13b")
-    tokenizer, model, vis_processors, _ = load_pretrained_model(
-        "liuhaotian/llava-v1.5-13b", None, model_name, load_4bit=True
-    )
+    if llava_version == "llava 7b":
+        model_id = "llava-hf/llava-1.5-7b-hf"
+        processor = AutoProcessor.from_pretrained(model_id)
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float32,
+        )
+        model = AutoModelForPreTraining.from_pretrained(
+            model_id,
+            quantization_config=quantization_config if load_4bit else None,
+            device_map="auto",
+            low_cpu_mem_usage=True,
+        )
+    elif llava_version == "llava-vicuna 7b":
+        model_id = "llava-hf/llava-v1.6-vicuna-7b-hf"
+        processor = AutoProcessor.from_pretrained(model_id)
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float32,
+        )
+        model = AutoModelForPreTraining.from_pretrained(
+            model_id,
+            quantization_config=quantization_config if load_4bit else None,
+            device_map="auto",
+            low_cpu_mem_usage=True,
+        )
+    elif llava_version == "llava-next 7b":
+        model_id = "llava-hf/llava-v1.6-mistral-7b-hf"
+        processor = LlavaNextProcessor.from_pretrained(model_id)
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float32,
+        )
+        model = LlavaNextForConditionalGeneration.from_pretrained(
+            model_id,
+            quantization_config=quantization_config if load_4bit else None,
+            device_map="auto",
+            low_cpu_mem_usage=True,
+        )
 
     input_prompt = input_text + " " + input_question
     fig = go.Figure(figure)
-    input_image = plotly_fig2PIL(fig)
+    image = plotly_fig2PIL(fig)
 
-    input_image = vis_process_func(input_image, vis_processors).to(device)
+    if "next" in llava_version:
+        prompt = f"[INST] <image>\n{input_prompt} [/INST]"
+    else:
+        prompt = f"USER: <image>\n{input_prompt} \nASSISTANT:"
 
-    conv = conv_templates["vicuna_v1"].copy()
-    conv.append_message(conv.roles[0], input_prompt)
-    conv.append_message(conv.roles[1], None)
-    input_prompt = conv.get_prompt()
-    input_prompt = deal_with_prompt(input_prompt, model.config.mm_use_im_start_end)
-    input_ids = (
-        tokenizer_image_token(
-            input_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt"
+    if "vicuna" in llava_version:
+        default_prompt = "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions. "
+        prompt = default_prompt + prompt
+        default_prompt_length = len(
+            processor.tokenizer(default_prompt, return_tensors="pt")["input_ids"][0]
         )
-        .unsqueeze(0)
-        .cuda()
-    )
+
+    inputs = processor(prompt, image, return_tensors="pt").to(device, torch.float32)
+
     with torch.no_grad():
-        output_ids = model.generate(
-            input_ids,
-            images=input_image.unsqueeze(0).half().cuda(),
-            do_sample=True,
-            temperature=1,
-            num_beams=3,
-            max_new_tokens=128,
-            use_cache=False,
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens= 256,
+            do_sample=False,
+            use_cache=True,
+            output_attentions=False,
+            return_dict_in_generate=True,
         )
 
-    response = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
-    return response
+    answer = (
+        processor.decode(outputs.sequences[0], skip_special_tokens=True)
+        .split("ASSISTANT: ")[-1].split("[/INST]")[-1]
+        .strip()
+    )
+
+    return answer

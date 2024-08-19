@@ -1,9 +1,5 @@
 """Implement semantic entropy."""
 
-import os
-import pickle
-import logging
-
 import numpy as np
 import torch
 import torch.nn.functional as F
