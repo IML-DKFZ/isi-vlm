@@ -6,21 +6,18 @@ import torch
 import torch
 import plotly.graph_objs as go
 
-from llava.data_utils.set_seed import set_seed
+from dash_app.utils.set_seed import fix_random_seed
 from dash_app.utils.image_export import plotly_fig2PIL
 
 from transformers import (
     AutoProcessor,
-    AutoModelForPreTraining,
     LlavaNextProcessor,
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    LlavaNextForConditionalGeneration,
     BitsAndBytesConfig,
     AutoProcessor,
     LlavaForConditionalGeneration,
 )
 
+from dash_app.utils.modeling_llava_next import LlavaNextForConditionalGeneration_adapted
 from dash_app.utils.semantic_entropy import get_semantic_ids
 from dash_app.utils.semantic_entropy import logsumexp_by_id
 from dash_app.utils.semantic_entropy import predictive_entropy
@@ -40,7 +37,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaForConditionalGeneration.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -48,13 +45,13 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
         )
     elif llava_version == "llava-vicuna 7b":
         model_id = "llava-hf/llava-v1.6-vicuna-7b-hf"
-        processor = AutoProcessor.from_pretrained(model_id)
+        processor = LlavaNextProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -68,7 +65,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = LlavaNextForConditionalGeneration.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -95,7 +92,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
     
     full_responses = []
     for i in range(iter):
-        set_seed(i)
+        fix_random_seed(i)
         with torch.no_grad():
             outputs = model.generate(
                 **input,

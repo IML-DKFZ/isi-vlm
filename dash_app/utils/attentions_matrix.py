@@ -15,7 +15,7 @@ def remove_default_prompt(attention_scores: Tuple[Tuple[torch.Tensor]], default_
         modified_output_attn = []
         for layer in output_attn:
             modified_layer = layer[:, :, default_prompt_length:, default_prompt_length:]
-            print("modified_layer size: ", modified_layer.size())
+            #print("modified_layer size: ", modified_layer.size())
             modified_output_attn.append(modified_layer)
         modified_attention_scores.append(tuple(modified_output_attn))
     
@@ -131,10 +131,6 @@ class MultiModalAttention:
         self.tokenizer = tokenizer
 
     def __call__(self, attention_scores, prompt, description, question):
-        prompt = prompt.replace(
-            "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions. ",
-            ""
-        )
         llm_out_attn_matrix = get_out_attn_matrix(attention_scores)
         scores = self.multimodal_attention_aggregation(llm_out_attn_matrix, prompt, description, question)
         return scores
@@ -143,11 +139,13 @@ class MultiModalAttention:
         # Assuming the vision model is a part of the whole model
         vision_config = self.model.config.vision_config
 
-        # Calculate the number of patches
-        image_size = vision_config.image_size
-        patch_size = vision_config.patch_size
-
-        num_patches = (image_size // patch_size) ** 2
+        if self.model.config.architectures[0] == 'LlavaNextForConditionalGeneration':
+            num_patches = self.model.image_end_pos - self.model.image_start_pos
+            num_patches = num_patches.cpu().numpy()
+        else:
+            image_size = vision_config.image_size
+            patch_size = vision_config.patch_size
+            num_patches = (image_size // patch_size) ** 2
         return num_patches
     
     def get_positions(self, prompt, description, question):

@@ -6,20 +6,15 @@ import torch
 import plotly.graph_objs as go
 
 from transformers import (
-    AutoProcessor,
     AutoModelForPreTraining,
     LlavaNextProcessor,
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    LlavaNextForConditionalGeneration,
     BitsAndBytesConfig,
-    AutoProcessor,
     LlavaForConditionalGeneration,
 )
-
-from llava.data_utils.set_seed import set_seed
+from dash_app.utils.set_seed import fix_random_seed
 from dash_app.utils.image_export import plotly_fig2PIL
 from dash_app.utils.attentions_matrix import MultiModalAttention
+from dash_app.utils.modeling_llava_next import LlavaNextForConditionalGeneration_adapted
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,7 +24,7 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     torch.cuda.empty_cache()
     if llava_version == "llava 7b":
         model_id = "llava-hf/llava-1.5-7b-hf"
-        processor = AutoProcessor.from_pretrained(model_id)
+        processor = LlavaForConditionalGeneration.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -43,13 +38,13 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
         )
     elif llava_version == "llava-vicuna 7b":
         model_id = "llava-hf/llava-v1.6-vicuna-7b-hf"
-        processor = AutoProcessor.from_pretrained(model_id)
+        processor = LlavaNextProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -63,7 +58,7 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = LlavaNextForConditionalGeneration.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -82,9 +77,6 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     if "vicuna" in llava_version:
         default_prompt = "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions. "
         prompt = default_prompt + prompt
-        default_prompt_length = len(
-            processor.tokenizer(default_prompt, return_tensors="pt")["input_ids"][0]
-        )
 
     inputs = processor(prompt, image, return_tensors="pt").to(device, torch.float32)
 

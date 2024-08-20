@@ -4,16 +4,13 @@ import plotly.graph_objs as go
 
 from transformers import (
     AutoProcessor,
-    AutoModelForPreTraining,
     LlavaNextProcessor,
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    LlavaNextForConditionalGeneration,
     BitsAndBytesConfig,
     AutoProcessor,
     LlavaForConditionalGeneration,
 )
 
+from dash_app.utils.modeling_llava_next import LlavaNextForConditionalGeneration_adapted
 from dash_app.utils.image_export import plotly_fig2PIL
 
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
@@ -29,7 +26,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaForConditionalGeneration.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -37,13 +34,13 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
         )
     elif llava_version == "llava-vicuna 7b":
         model_id = "llava-hf/llava-v1.6-vicuna-7b-hf"
-        processor = AutoProcessor.from_pretrained(model_id)
+        processor = LlavaNextProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -57,7 +54,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = LlavaNextForConditionalGeneration.from_pretrained(
+        model = LlavaNextForConditionalGeneration_adapted.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",

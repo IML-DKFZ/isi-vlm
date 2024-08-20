@@ -17,11 +17,11 @@ sys.path.append(os.getcwd())
 from dash_app.utils.run_llava import llava_inference
 from dash_app.utils.compute_uncertainty import generate_uncertainty_score
 from dash_app.utils.compute_attention import generate_attention
-from llava.data_utils.set_seed import set_seed
+from dash_app.utils.set_seed import fix_random_seed
 
 from dash_app.utils.image_export import plotly_fig2PIL, pil_to_b64
 
-set_seed(42)
+fix_random_seed(42)
 
 # Initialize the app - incorporate a Dash Bootstrap theme
 external_stylesheets = [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP]
