@@ -15,6 +15,7 @@ from dash_app.utils.image_export import plotly_fig2PIL
 
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
+
 def llava_inference(input_text, input_question, figure, llava_version, load_4bit):
     gc.collect()
     torch.cuda.empty_cache()
@@ -82,7 +83,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens= 128,
+            max_new_tokens=128,
             do_sample=False,
             use_cache=True,
             output_attentions=False,
@@ -91,7 +92,8 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
 
     answer = (
         processor.decode(outputs.sequences[0], skip_special_tokens=True)
-        .split("ASSISTANT: ")[-1].split("[/INST]")[-1]
+        .split("ASSISTANT: ")[-1]
+        .split("[/INST]")[-1]
         .strip()
     )
 

@@ -34,60 +34,73 @@ options = [
 ]
 
 NAVBAR = dbc.NavbarSimple(
-    children = [
-
-                        # dbc.Col(
-                        #     html.Img(
-                        #         src="./assets/eth_logo_kurz_neg.png",
-                        #         height="26px",
-                        #         style={"margin-right": "10px"},
-                        #     )
-                        # ),
-                        # dbc.Col(html.H1("|", style={"color": "white"})),
-                        # dbc.Col(
-                        #     html.Img(
-                        #         src="./assets/ibm_logo.png",
-                        #         height="24px",
-                        #         style={"margin-right": "35px", "margin-left": "10px"},
-                        #     )
-                        # ),
-                        # dbc.NavbarBrand(
-                        #         "LLaVa Interactive Semantic Perturbations",
-                        #         style={"font-size": 25},
-                        #         className="ms-2",
-                        #     ),
-                        dbc.Row([
-                        dbc.Col(dbc.NavItem(dbc.NavLink("LLaVA 7b", id = "llava_selected")), width ="auto"),
-                        dbc.Col(dbc.DropdownMenu(
-                            children=[
-                                dbc.DropdownMenuItem("LLaVA 7b", id = "llava7b"),
-                                dbc.DropdownMenuItem("LLaVA-Vicuna 7b", id = "llava-vicuna7b"),
-                                dbc.DropdownMenuItem("LLaVA-Next 7b", id = "llava-next7b"),
-                            ],
-                            nav=True,
-                            in_navbar=True,
-                            label="LLaVA Model Version",
-                            id = "llava_dropdown"
-                        ), width ="auto"),
-                        dbc.Col(dbc.Checkbox(
-                            id="4bit_checkbox",
-                            label="4bit",
-                            label_style = {'color': '#92BDFE'},
-                            input_style = {'color': 'red'},
-                            value=True,
-                            style={
-                                    "margin-bottom": "-8px",
-                                    "margin-left": "0px",
-                                }
-                        ), width ="auto")], align = "center"
-                        )
-                    ],
+    children=[
+        # dbc.Col(
+        #     html.Img(
+        #         src="./assets/eth_logo_kurz_neg.png",
+        #         height="26px",
+        #         style={"margin-right": "10px"},
+        #     )
+        # ),
+        # dbc.Col(html.H1("|", style={"color": "white"})),
+        # dbc.Col(
+        #     html.Img(
+        #         src="./assets/ibm_logo.png",
+        #         height="24px",
+        #         style={"margin-right": "35px", "margin-left": "10px"},
+        #     )
+        # ),
+        # dbc.NavbarBrand(
+        #         "LLaVa Interactive Semantic Perturbations",
+        #         style={"font-size": 25},
+        #         className="ms-2",
+        #     ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.NavItem(dbc.NavLink("LLaVA 7b", id="llava_selected")),
+                    width="auto",
+                ),
+                dbc.Col(
+                    dbc.DropdownMenu(
+                        children=[
+                            dbc.DropdownMenuItem("LLaVA 7b", id="llava7b"),
+                            dbc.DropdownMenuItem(
+                                "LLaVA-Vicuna 7b", id="llava-vicuna7b"
+                            ),
+                            dbc.DropdownMenuItem("LLaVA-Next 7b", id="llava-next7b"),
+                        ],
+                        nav=True,
+                        in_navbar=True,
+                        label="LLaVA Model Version",
+                        id="llava_dropdown",
+                    ),
+                    width="auto",
+                ),
+                dbc.Col(
+                    dbc.Checkbox(
+                        id="4bit_checkbox",
+                        label="4bit",
+                        label_style={"color": "#92BDFE"},
+                        input_style={"color": "red"},
+                        value=True,
+                        style={
+                            "margin-bottom": "-8px",
+                            "margin-left": "0px",
+                        },
+                    ),
+                    width="auto",
+                ),
+            ],
+            align="center",
+        )
+    ],
     brand="LLaVA Interactive Semantic Perturbations",
     brand_href="#",
     color="primary",
     dark=True,
-    fluid = True,
-    className="w-100"
+    fluid=True,
+    className="w-100",
 )
 
 
@@ -432,6 +445,15 @@ LEFT_CONTAINER = [
                         ),
                         width="auto",
                     ),
+                    dbc.Col(
+                        dbc.Badge(
+                            {},
+                            color={},
+                            id="gt_text_badge",
+                            className="border me-1",
+                        ),
+                        width="auto",
+                    ),
                 ]
             ),
             dbc.Row(
@@ -468,17 +490,27 @@ LEFT_CONTAINER = [
 
 # header
 
+
 @callback(
     Output(component_id="llava_selected", component_property="children"),
-    [Input("llava7b", "n_clicks"), Input("llava-vicuna7b", "n_clicks"), Input("llava-next7b", "n_clicks")],
+    [
+        Input("llava7b", "n_clicks"),
+        Input("llava-vicuna7b", "n_clicks"),
+        Input("llava-next7b", "n_clicks"),
+    ],
     prevent_initial_call=True,
 )
 def update_llava_version(n1, n2, n3):
-    id_lookup = {"llava7b": "LLaVA 7b", "llava-vicuna7b": "LLaVA-Vicuna 7b", "llava-next7b": "LLaVA-Next 7b"}
+    id_lookup = {
+        "llava7b": "LLaVA 7b",
+        "llava-vicuna7b": "LLaVA-Vicuna 7b",
+        "llava-next7b": "LLaVA-Next 7b",
+    }
 
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     return id_lookup[button_id]
+
 
 # Callbacks for left
 @callback(
@@ -537,14 +569,50 @@ def text_comp(n_clicks, value):
         Output(component_id="gt_badge", component_property="children"),
         Output(component_id="gt_badge", component_property="color"),
     ],
-    Input(component_id="dropdown_obs", component_property="value"),
+    [
+        Input(component_id="dropdown_obs", component_property="value"),
+        Input(component_id="random_image_button", component_property="n_clicks"),
+        Input(component_id="natural_image_button", component_property="n_clicks"),
+        Input(component_id="annotated_image_button", component_property="n_clicks"),
+    ],
 )
-def update_gt_badge(value):
-    gt = files["answer"].iloc[value]
-    if gt == 1:
-        return "True", "success"
+def update_gt_badge(value, n1_clicks, n2_clicks, n3_clicks):
+    if ctx.triggered[0]["prop_id"].split(".")[0] == "random_image_button":
+        return "Image: ?", "warning"
     else:
-        return "False", "danger"
+        gt = files["answer"].iloc[value]
+        if gt == 1:
+            return "Image: Yes", "success"
+        else:
+            return "Image: No", "danger"
+
+
+@callback(
+    [
+        Output(component_id="gt_text_badge", component_property="children"),
+        Output(component_id="gt_text_badge", component_property="color"),
+    ],
+    [
+        Input(component_id="dropdown_obs", component_property="value"),
+        Input(component_id="complementary_text_button", component_property="n_clicks"),
+        Input(component_id="random_text_button", component_property="n_clicks"),
+        Input(component_id="contradictory_text_button", component_property="n_clicks"),
+    ],
+)
+def update_gt_badge(value, n_comp, n_contra, n_random):
+    gt = files["answer"].iloc[value]
+    if ctx.triggered[0]["prop_id"].split(".")[0] == "contradictory_text_button":
+        if gt == 1:
+            return "Text: No", "danger"
+        else:
+            return "Text: Yes", "success"
+    elif ctx.triggered[0]["prop_id"].split(".")[0] == "random_text_button":
+        return "Text: ?", "warning"
+    else:
+        if gt == 1:
+            return "Text: Yes", "success"
+        else:
+            return "Text: No", "danger"
 
 
 @callback(
@@ -760,7 +828,11 @@ def new_text_annotation(figure, text, arrow_value, arrow_size, text_size, n_clic
 
 @callback(
     Output(component_id="current_image", component_property="src"),
-    [Input(component_id="button_gen", component_property="n_clicks"),Input(component_id="button_uncertainty", component_property="n_clicks"), Input(component_id="button_attention", component_property="n_clicks")],
+    [
+        Input(component_id="button_gen", component_property="n_clicks"),
+        Input(component_id="button_uncertainty", component_property="n_clicks"),
+        Input(component_id="button_attention", component_property="n_clicks"),
+    ],
     State(component_id="fig_perturb", component_property="figure"),
 )
 def update_fig_perturb(n1, n2, n3, figure):
@@ -945,10 +1017,11 @@ RIGHT_UNCERTAINTY = [
                             dbc.AccordionItem(
                                 None,
                                 title="Answers per Cluster",
-                                id="uncertainty_table"
-                            ), start_collapsed= True 
+                                id="uncertainty_table",
+                            ),
+                            start_collapsed=True,
                         )
-                    )
+                    ),
                 ],
             ),
         ],
@@ -1088,16 +1161,25 @@ RIGHT_ATTENTION = [
 # Callbacks for Right
 @callback(
     Output(component_id="input_question_out", component_property="children"),
-    [Input(component_id="button_gen", component_property="n_clicks"), Input(component_id="button_uncertainty", component_property="n_clicks"), Input(component_id="button_attention", component_property="n_clicks")],
+    [
+        Input(component_id="button_gen", component_property="n_clicks"),
+        Input(component_id="button_uncertainty", component_property="n_clicks"),
+        Input(component_id="button_attention", component_property="n_clicks"),
+    ],
     State(component_id="input_question", component_property="value"),
 )
 def update_input_question(n1, n2, n3, value):
     if any(v is not None for v in (n1, n2, n3)):
         return value
 
+
 @callback(
     Output(component_id="input_text_out", component_property="children"),
-    [Input(component_id="button_gen", component_property="n_clicks"), Input(component_id="button_uncertainty", component_property="n_clicks"), Input(component_id="button_attention", component_property="n_clicks")],
+    [
+        Input(component_id="button_gen", component_property="n_clicks"),
+        Input(component_id="button_uncertainty", component_property="n_clicks"),
+        Input(component_id="button_attention", component_property="n_clicks"),
+    ],
     State(component_id="input_text", component_property="value"),
 )
 def update_input_text(n1, n2, n3, value):
@@ -1116,9 +1198,13 @@ def update_input_text(n1, n2, n3, value):
         State(component_id="4bit_checkbox", component_property="value"),
     ],
 )
-def llava_output(n_clicks, input_text, input_question, figure, llava_version, load_4bit):
+def llava_output(
+    n_clicks, input_text, input_question, figure, llava_version, load_4bit
+):
     if not (n_clicks == None):
-        response = llava_inference(input_text, input_question, figure, llava_version.lower(), load_4bit)
+        response = llava_inference(
+            input_text, input_question, figure, llava_version.lower(), load_4bit
+        )
         return response
 
 
@@ -1140,16 +1226,41 @@ def llava_output(n_clicks, input_text, input_question, figure, llava_version, lo
     ],
     prevent_initial_call=True,
 )
-def llava_uncertainty(n_clicks, input_text, input_question, figure, num_uncertainty, temp_uncertainty, llava_version, load_4bit):
+def llava_uncertainty(
+    n_clicks,
+    input_text,
+    input_question,
+    figure,
+    num_uncertainty,
+    temp_uncertainty,
+    llava_version,
+    load_4bit,
+):
     if not (n_clicks == None):
         semantic_entropy, regular_entropy, full_responses, num_clusters = (
             generate_uncertainty_score(
-                input_text, input_question, figure, temp_uncertainty, num_uncertainty, llava_version.lower(), load_4bit
+                input_text,
+                input_question,
+                figure,
+                temp_uncertainty,
+                num_uncertainty,
+                llava_version.lower(),
+                load_4bit,
             )
         )
-        df_table = pd.DataFrame({"Cluster": full_responses[0], "Answer": full_responses[1]}).sort_values("Cluster")
-        table = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True, size = "sm", style = {'fontSize': '12px'})
+        df_table = pd.DataFrame(
+            {"Cluster": full_responses[0], "Answer": full_responses[1]}
+        ).sort_values("Cluster")
+        table = dbc.Table.from_dataframe(
+            df_table,
+            striped=True,
+            bordered=True,
+            hover=True,
+            size="sm",
+            style={"fontSize": "12px"},
+        )
         return semantic_entropy, num_clusters, table
+
 
 @callback(
     [
@@ -1168,19 +1279,26 @@ def llava_uncertainty(n_clicks, input_text, input_question, figure, num_uncertai
     ],
     prevent_initial_call=True,
 )
-def llava_attention(n_clicks, input_text, input_question, figure, llava_version, load_4bit, norm):
+def llava_attention(
+    n_clicks, input_text, input_question, figure, llava_version, load_4bit, norm
+):
     if not (n_clicks == None):
         dict_atten = generate_attention(
-                input_text, input_question, figure, llava_version.lower(), load_4bit
-            )
-        
-        if norm:
-            sum = dict_atten['attn_I'] + dict_atten['attn_T'] + dict_atten['attn_Q']
-            dict_atten['attn_I'] = dict_atten['attn_I'] / sum
-            dict_atten['attn_T'] = dict_atten['attn_T'] / sum
-            dict_atten['attn_Q'] = dict_atten['attn_Q'] / sum
+            input_text, input_question, figure, llava_version.lower(), load_4bit
+        )
 
-        return np.round(dict_atten['attn_Q'],2), np.round(dict_atten['attn_I'],2), np.round(dict_atten['attn_T'],2)
+        if norm:
+            sum = dict_atten["attn_I"] + dict_atten["attn_T"] + dict_atten["attn_Q"]
+            dict_atten["attn_I"] = dict_atten["attn_I"] / sum
+            dict_atten["attn_T"] = dict_atten["attn_T"] / sum
+            dict_atten["attn_Q"] = dict_atten["attn_Q"] / sum
+
+        return (
+            np.round(dict_atten["attn_Q"], 2),
+            np.round(dict_atten["attn_I"], 2),
+            np.round(dict_atten["attn_T"], 2),
+        )
+
 
 BODY = dbc.Container(
     [

@@ -10,7 +10,7 @@ from transformers import (
     LlavaNextProcessor,
     BitsAndBytesConfig,
     LlavaForConditionalGeneration,
-    AutoProcessor
+    AutoProcessor,
 )
 from dash_app.utils.set_seed import fix_random_seed
 from dash_app.utils.image_export import plotly_fig2PIL
@@ -94,7 +94,5 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     attention_scores = outputs["attentions"]
 
     attention_model = MultiModalAttention(model, processor.tokenizer, device)
-    answer_attn_scores = attention_model(
-        attention_scores, prompt, input_text, question
-    )
+    answer_attn_scores = attention_model(attention_scores, prompt, input_text, question)
     return answer_attn_scores

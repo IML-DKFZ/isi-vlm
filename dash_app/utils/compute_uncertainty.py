@@ -26,7 +26,10 @@ from dash_app.utils.semantic_entropy import EntailmentDeberta
 
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
-def generate_uncertainty_score(input_text, question, figure, T, iter, llava_version, load_4bit):
+
+def generate_uncertainty_score(
+    input_text, question, figure, T, iter, llava_version, load_4bit
+):
     gc.collect()
     torch.cuda.empty_cache()
     if llava_version == "llava 7b":
@@ -89,7 +92,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
         )
 
     input = processor(prompt, image, return_tensors="pt").to(device, torch.float32)
-    
+
     full_responses = []
     for i in range(iter):
         fix_random_seed(i)
@@ -112,7 +115,8 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
 
         response = (
             processor.decode(outputs.sequences[0], skip_special_tokens=True)
-            .split("ASSISTANT: ")[-1].split("[/INST]")[-1]
+            .split("ASSISTANT: ")[-1]
+            .split("[/INST]")[-1]
             .strip()
         )
 
@@ -120,7 +124,6 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
 
         gc.collect()
         torch.cuda.empty_cache()
-
 
     entailment_model = EntailmentDeberta()
 
