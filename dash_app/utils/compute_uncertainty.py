@@ -98,7 +98,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
                 **input,
                 do_sample=True,
                 temperature=T,
-                max_new_tokens=256,
+                max_new_tokens=128,
                 use_cache=True,
                 output_scores=True,
                 output_hidden_states=False,
@@ -112,7 +112,7 @@ def generate_uncertainty_score(input_text, question, figure, T, iter, llava_vers
 
         response = (
             processor.decode(outputs.sequences[0], skip_special_tokens=True)
-            .split("ASSISTANT: ")[-1]
+            .split("ASSISTANT: ")[-1].split("[/INST]")[-1]
             .strip()
         )
 

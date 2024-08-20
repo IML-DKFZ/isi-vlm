@@ -83,7 +83,7 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=256,
+            max_new_tokens=128,
             do_sample=False,
             use_cache=True,
             output_attentions=True,
