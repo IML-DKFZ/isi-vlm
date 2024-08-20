@@ -10,6 +10,7 @@ from transformers import (
     LlavaNextProcessor,
     BitsAndBytesConfig,
     LlavaForConditionalGeneration,
+    AutoProcessor
 )
 from dash_app.utils.set_seed import fix_random_seed
 from dash_app.utils.image_export import plotly_fig2PIL
@@ -24,13 +25,13 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     torch.cuda.empty_cache()
     if llava_version == "llava 7b":
         model_id = "llava-hf/llava-1.5-7b-hf"
-        processor = LlavaForConditionalGeneration.from_pretrained(model_id)
+        processor = AutoProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float32,
         )
-        model = AutoModelForPreTraining.from_pretrained(
+        model = LlavaForConditionalGeneration.from_pretrained(
             model_id,
             quantization_config=quantization_config if load_4bit else None,
             device_map="auto",
@@ -83,7 +84,7 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=128,
+            max_new_tokens=256,
             do_sample=False,
             use_cache=True,
             output_attentions=True,
