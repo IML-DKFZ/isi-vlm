@@ -58,22 +58,41 @@ NAVBAR = dbc.NavbarSimple(
         dbc.Row(
             [
                 dbc.Col(
-                    dbc.NavItem(dbc.NavLink("LLaVA 7b", id="llava_selected")),
+                    dbc.NavItem(dbc.NavLink("LLaVA", id="llava_selected")),
+                    width="auto",
+                    align="right",
+                    style={"margin-right": "0px"},
+                ),
+                dbc.Col(
+                    dbc.NavItem(dbc.NavLink("7b", id="params_selected")),
+                    width="auto",
+                    style={"margin-left": "-30px"},
+                ),
+                dbc.Col(
+                    dbc.DropdownMenu(
+                        children=[
+                            dbc.DropdownMenuItem("LLaVA", id="llava"),
+                            dbc.DropdownMenuItem("LLaVA-Vicuna", id="llava-vicuna"),
+                            dbc.DropdownMenuItem("LLaVA-Next", id="llava-next"),
+                        ],
+                        nav=True,
+                        in_navbar=True,
+                        label="VLM Version",
+                        id="llava_dropdown",
+                    ),
                     width="auto",
                 ),
                 dbc.Col(
                     dbc.DropdownMenu(
                         children=[
-                            dbc.DropdownMenuItem("LLaVA 7b", id="llava7b"),
-                            dbc.DropdownMenuItem(
-                                "LLaVA-Vicuna 7b", id="llava-vicuna7b"
-                            ),
-                            dbc.DropdownMenuItem("LLaVA-Next 7b", id="llava-next7b"),
+                            dbc.DropdownMenuItem("7b", id="7b"),
+                            dbc.DropdownMenuItem("13b", id="13b"),
+                            dbc.DropdownMenuItem("32b", id="32b"),
                         ],
                         nav=True,
                         in_navbar=True,
-                        label="LLaVA Model Version",
-                        id="llava_dropdown",
+                        label="#B Parameter",
+                        id="parameter_dropdown",
                     ),
                     width="auto",
                 ),
@@ -95,7 +114,7 @@ NAVBAR = dbc.NavbarSimple(
             align="center",
         )
     ],
-    brand="LLaVA Interactive Semantic Perturbations",
+    brand="Interactive Semantic Interventions for VLMs",
     brand_href="#",
     color="primary",
     dark=True,
@@ -105,7 +124,7 @@ NAVBAR = dbc.NavbarSimple(
 
 
 LEFT_CONTAINER = [
-    dbc.CardHeader(html.H4("New Perturbed Input")),
+    dbc.CardHeader(html.H4("Intervened Input")),
     dbc.CardBody(
         [
             dbc.Row(
@@ -163,7 +182,7 @@ LEFT_CONTAINER = [
                                 [
                                     dbc.Col(
                                         dbc.Button(
-                                            "Natural Version",
+                                            "Natural Preset",
                                             color="primary",
                                             className="me-1",
                                             id="natural_image_button",
@@ -177,7 +196,7 @@ LEFT_CONTAINER = [
                                     ),
                                     dbc.Col(
                                         dbc.Button(
-                                            "Annotated Version",
+                                            "Annotated Preset",
                                             color="primary",
                                             className="me-1",
                                             id="annotated_image_button",
@@ -377,7 +396,7 @@ LEFT_CONTAINER = [
                     ),
                 ]
             ),
-            dbc.Row(html.H4("Input Text")),
+            dbc.Row(html.H4("Input Context")),
             dbc.Row(
                 dbc.InputGroup(
                     [
@@ -391,7 +410,7 @@ LEFT_CONTAINER = [
                 [
                     dbc.Col(
                         dbc.Button(
-                            "Complementary Version",
+                            "Complementary Preset",
                             color="primary",
                             className="me-1",
                             id="complementary_text_button",
@@ -405,7 +424,7 @@ LEFT_CONTAINER = [
                     ),
                     dbc.Col(
                         dbc.Button(
-                            "Contradictory Version",
+                            "Contradictory Preset",
                             color="primary",
                             className="me-1",
                             id="contradictory_text_button",
@@ -424,7 +443,7 @@ LEFT_CONTAINER = [
                             className="me-1",
                             id="random_text_button",
                             style={
-                                "margin-bottom": "10px",
+                                "margin-bottom": "30px",
                                 "margin-left": "0px",
                                 "align": "left",
                             },
@@ -436,6 +455,7 @@ LEFT_CONTAINER = [
             dbc.Row(
                 [
                     dbc.Col(html.H4("Input Question"), width="auto"),
+                    dbc.Col(html.P("Ground truth based on image:"), width="auto"),
                     dbc.Col(
                         dbc.Badge(
                             {},
@@ -444,17 +464,10 @@ LEFT_CONTAINER = [
                             className="border me-1",
                         ),
                         width="auto",
+                        style={"margin-left": "-20px"},
                     ),
-                    dbc.Col(
-                        dbc.Badge(
-                            {},
-                            color={},
-                            id="gt_text_badge",
-                            className="border me-1",
-                        ),
-                        width="auto",
-                    ),
-                ]
+                ],
+                align="bottom",
             ),
             dbc.Row(
                 dbc.InputGroup(
@@ -494,17 +507,38 @@ LEFT_CONTAINER = [
 @callback(
     Output(component_id="llava_selected", component_property="children"),
     [
-        Input("llava7b", "n_clicks"),
-        Input("llava-vicuna7b", "n_clicks"),
-        Input("llava-next7b", "n_clicks"),
+        Input("llava", "n_clicks"),
+        Input("llava-vicuna", "n_clicks"),
+        Input("llava-next", "n_clicks"),
     ],
     prevent_initial_call=True,
 )
 def update_llava_version(n1, n2, n3):
     id_lookup = {
-        "llava7b": "LLaVA 7b",
-        "llava-vicuna7b": "LLaVA-Vicuna 7b",
-        "llava-next7b": "LLaVA-Next 7b",
+        "llava": "LLaVA",
+        "llava-vicuna": "LLaVA-Vicuna",
+        "llava-next": "LLaVA-Next",
+    }
+
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    return id_lookup[button_id]
+
+
+@callback(
+    Output(component_id="params_selected", component_property="children"),
+    [
+        Input("7b", "n_clicks"),
+        Input("13b", "n_clicks"),
+        Input("32b", "n_clicks"),
+    ],
+    prevent_initial_call=True,
+)
+def update_llava_version(n1, n2, n3):
+    id_lookup = {
+        "7b": "7b",
+        "13b": "13b",
+        "32b": "32b",
     }
 
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
@@ -578,41 +612,13 @@ def text_comp(n_clicks, value):
 )
 def update_gt_badge(value, n1_clicks, n2_clicks, n3_clicks):
     if ctx.triggered[0]["prop_id"].split(".")[0] == "random_image_button":
-        return "Image: ?", "warning"
+        return "?", "warning"
     else:
         gt = files["answer"].iloc[value]
         if gt == 1:
-            return "Image: Yes", "success"
+            return "Yes", "success"
         else:
-            return "Image: No", "danger"
-
-
-@callback(
-    [
-        Output(component_id="gt_text_badge", component_property="children"),
-        Output(component_id="gt_text_badge", component_property="color"),
-    ],
-    [
-        Input(component_id="dropdown_obs", component_property="value"),
-        Input(component_id="complementary_text_button", component_property="n_clicks"),
-        Input(component_id="random_text_button", component_property="n_clicks"),
-        Input(component_id="contradictory_text_button", component_property="n_clicks"),
-    ],
-)
-def update_gt_badge(value, n_comp, n_contra, n_random):
-    gt = files["answer"].iloc[value]
-    if ctx.triggered[0]["prop_id"].split(".")[0] == "contradictory_text_button":
-        if gt == 1:
-            return "Text: No", "danger"
-        else:
-            return "Text: Yes", "success"
-    elif ctx.triggered[0]["prop_id"].split(".")[0] == "random_text_button":
-        return "Text: ?", "warning"
-    else:
-        if gt == 1:
-            return "Text: Yes", "success"
-        else:
-            return "Text: No", "danger"
+            return "No", "danger"
 
 
 @callback(
@@ -863,7 +869,7 @@ RIGHT_CONTAINER = [
                     ),
                     dbc.Col(
                         [
-                            dbc.Row(html.H5("Input Text")),
+                            dbc.Row(html.H5("Input Context")),
                             dbc.Row(html.P(None, id="input_text_out")),
                         ],
                         width=8,
@@ -1319,6 +1325,25 @@ BODY = dbc.Container(
                                 dbc.Col(dbc.Card(RIGHT_UNCERTAINTY), width=6),
                                 dbc.Col(dbc.Card(RIGHT_ATTENTION), width=6),
                             ]
+                        ),
+                        dbc.Row(
+                            dbc.Col(
+                                dbc.Button(
+                                    [
+                                        html.I(
+                                            className="bi bi-download",
+                                            style={"margin-right": "10px"},
+                                        ),
+                                        "Download Report",
+                                    ],
+                                    # href="/static/data_file.txt",
+                                    # download="my_data.txt",
+                                    # external_link=True,
+                                    color="success",
+                                    style={"margin-top": "20px"},
+                                ),
+                                width=12,
+                            ),
                         ),
                     ],
                     width=6,

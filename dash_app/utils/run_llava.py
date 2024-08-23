@@ -19,7 +19,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 def llava_inference(input_text, input_question, figure, llava_version, load_4bit):
     gc.collect()
     torch.cuda.empty_cache()
-    if llava_version == "llava 7b":
+    if llava_version == "llava":
         model_id = "llava-hf/llava-1.5-7b-hf"
         processor = AutoProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
@@ -33,7 +33,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
             device_map="auto",
             low_cpu_mem_usage=True,
         )
-    elif llava_version == "llava-vicuna 7b":
+    elif llava_version == "llava-vicuna":
         model_id = "llava-hf/llava-v1.6-vicuna-7b-hf"
         processor = LlavaNextProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
@@ -47,7 +47,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
             device_map="auto",
             low_cpu_mem_usage=True,
         )
-    elif llava_version == "llava-next 7b":
+    elif llava_version == "llava-next":
         model_id = "llava-hf/llava-v1.6-mistral-7b-hf"
         processor = LlavaNextProcessor.from_pretrained(model_id)
         quantization_config = BitsAndBytesConfig(
