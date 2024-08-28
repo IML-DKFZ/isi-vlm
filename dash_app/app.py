@@ -128,19 +128,51 @@ LEFT_CONTAINER = [
     dbc.CardBody(
         [
             dbc.Row(
-                html.Div(
-                    [
-                        html.P("Select observation:"),
-                        dcc.Dropdown(
-                            # label="Select Observation",
-                            value=0,
-                            options=options,
-                            clearable=False,
-                            id="dropdown_obs",
-                            style={"margin-bottom": "15px"},
-                        ),
-                    ]
-                )
+                [
+                    dbc.Col(
+                        [
+                            html.Div(
+                                [
+                                    html.P("Select observation from dataset:"),
+                                    dcc.Dropdown(
+                                        # label="Select Observation",
+                                        value=0,
+                                        options=options,
+                                        clearable=False,
+                                        id="dropdown_obs",
+                                        style={"margin-bottom": "15px"},
+                                    ),
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                    dbc.Col(
+                        [
+                            html.P("Or upload image:"),
+                            dcc.Upload(
+                                id="upload-data",
+                                children=html.Div(
+                                    ["Drag and Drop or ", html.B("Select Image")]
+                                ),
+                                style={
+                                    "width": "100%",
+                                    "height": "60px",
+                                    "lineHeight": "60px",
+                                    "borderWidth": "1px",
+                                    "borderStyle": "dashed",
+                                    "borderRadius": "5px",
+                                    "textAlign": "center",
+                                    "margin": "10px",
+                                },
+                                # Allow multiple files to be uploaded
+                                multiple=False,
+                            ),
+                        ],
+                        width=6,
+                    ),
+                    html.Hr(className="my-1"),
+                ]
             ),
             dbc.Row(
                 html.H4("Input Image"),
