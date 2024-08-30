@@ -1006,13 +1006,19 @@ RIGHT_UNCERTAINTY = [
                             dbc.Col(
                                 [
                                     html.I(
+                                        id = "sem_entropy_icon",
                                         className="bi bi-arrows-move",
                                         style={
                                             "font-size": "50px",
                                             "height": "100%",
                                             "vertical-align": "middle",
                                         },
-                                    )
+                                    ),
+                                dbc.Tooltip(
+                                    ["Mean on VQA dataset: ", html.B("1.2")],
+                                    target="sem_entropy_icon",
+                                    placement = "top",
+                                )
                                 ],
                                 width=2,
                             ),
@@ -1030,8 +1036,14 @@ RIGHT_UNCERTAINTY = [
                             dbc.Col(
                                 [
                                     html.I(
+                                        id = "sem_cluster_icon",
                                         className="bi bi-grid me-2",
                                         style={"font-size": "50px"},
+                                    ),
+                                    dbc.Tooltip(
+                                        ["Mean on VQA dataset: ", html.B("3.7")],
+                                        target="sem_cluster_icon",
+                                        placement = "top",
                                     )
                                 ],
                                 width=2,
@@ -1119,8 +1131,14 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
+                                        id = "atte_question_icon",
                                         className="bi bi-question-square",
                                         style={"font-size": "30px"},
+                                    ),
+                                    dbc.Tooltip(
+                                        ["Mean on VQA dataset: ", html.B("0.21")],
+                                        target="atte_question_icon",
+                                        placement = "top",
                                     )
                                 ],
                                 width=1,
@@ -1139,6 +1157,7 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
+                                        id = "atte_image_icon",
                                         className="bi bi-card-image me-2",
                                         style={
                                             "font-size": "30px",
@@ -1146,6 +1165,11 @@ RIGHT_ATTENTION = [
                                             "vertical-align": "middle",
                                         },
                                     ),
+                                    dbc.Tooltip(
+                                        ["Mean on VQA dataset: ", html.B("0.52")],
+                                        target="atte_image_icon",
+                                        placement = "top",
+                                    )
                                 ],
                                 width=1,
                             ),
@@ -1163,8 +1187,14 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
+                                        id = "atte_context_icon",
                                         className="bi bi-card-text me-2",
                                         style={"font-size": "30px"},
+                                    ),
+                                    dbc.Tooltip(
+                                        ["Mean on VQA dataset: ", html.B("0.36")],
+                                        target="atte_context_icon",
+                                        placement = "top",
                                     )
                                 ],
                                 width=1,

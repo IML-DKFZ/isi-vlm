@@ -84,7 +84,7 @@ def llava_inference(input_text, input_question, figure, llava_version, load_4bit
         outputs = model.generate(
             **inputs,
             max_new_tokens=128,
-            do_sample=False,
+            do_sample=True,
             use_cache=True,
             output_attentions=False,
             return_dict_in_generate=True,
