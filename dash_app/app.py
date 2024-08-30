@@ -1015,7 +1015,7 @@ RIGHT_UNCERTAINTY = [
                                         },
                                     ),
                                 dbc.Tooltip(
-                                    ["Mean on VQA dataset: ", html.B("1.2")],
+                                    ["Mean on VQA dataset:", html.Br(), html.B("1.2")," (LLaVA)"],
                                     target="sem_entropy_icon",
                                     placement = "top",
                                 )
@@ -1041,7 +1041,7 @@ RIGHT_UNCERTAINTY = [
                                         style={"font-size": "50px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset: ", html.B("3.7")],
+                                        ["Mean on VQA dataset:", html.Br(), html.B("3.7")," (LLaVA)"],
                                         target="sem_cluster_icon",
                                         placement = "top",
                                     )
@@ -1136,7 +1136,7 @@ RIGHT_ATTENTION = [
                                         style={"font-size": "30px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset: ", html.B("0.21")],
+                                        ["Mean on VQA dataset:", html.Br(), html.B("0.21")," (LLaVA)"],
                                         target="atte_question_icon",
                                         placement = "top",
                                     )
@@ -1166,7 +1166,7 @@ RIGHT_ATTENTION = [
                                         },
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset: ", html.B("0.52")],
+                                        ["Mean on VQA dataset:", html.Br(), html.B("0.52")," (LLaVA)"],
                                         target="atte_image_icon",
                                         placement = "top",
                                     )
@@ -1192,7 +1192,7 @@ RIGHT_ATTENTION = [
                                         style={"font-size": "30px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset: ", html.B("0.36")],
+                                        ["Mean on VQA dataset:", html.Br(), html.B("0.36")," (LLaVA)"],
                                         target="atte_context_icon",
                                         placement = "top",
                                     )
