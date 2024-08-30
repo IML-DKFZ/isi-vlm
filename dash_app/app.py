@@ -537,7 +537,14 @@ LEFT_CONTAINER = [
 
 
 @callback(
-    Output(component_id="llava_selected", component_property="children"),
+    [
+        Output(component_id="llava_selected", component_property="children"),
+        Output(component_id="sem_entropy_tooltip", component_property="children"),
+        Output(component_id="sem_cluster_tooltip", component_property="children"),
+        Output(component_id="atte_question_tooltip", component_property="children"),
+        Output(component_id="atte_image_tooltip", component_property="children"),
+        Output(component_id="atte_context_tooltip", component_property="children"),
+    ],
     [
         Input("llava", "n_clicks"),
         Input("llava-vicuna", "n_clicks"),
@@ -554,7 +561,33 @@ def update_llava_version(n1, n2, n3):
 
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-    return id_lookup[button_id]
+    if id_lookup[button_id] == "LLaVA":
+        return (
+            id_lookup[button_id],
+            ["Mean on VQA dataset:", html.Br(), html.B("1.21"), " (LLaVA)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("4.90"), " (LLaVA)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.15"), " (LLaVA)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.28"), " (LLaVA)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.09"), " (LLaVA)"],
+        )
+    if id_lookup[button_id] == "LLaVA-Vicuna":
+        return (
+            id_lookup[button_id],
+            ["Mean on VQA dataset:", html.Br(), html.B("1.25"), " (LLaVA-Vicuna)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("4.67"), " (LLaVA-Vicuna)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.08"), " (LLaVA-Vicuna)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.11"), " (LLaVA-Vicuna)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.19"), " (LLaVA-Vicuna)"],
+        )
+    if id_lookup[button_id] == "LLaVA-Next":
+        return (
+            id_lookup[button_id],
+            ["Mean on VQA dataset:", html.Br(), html.B("1.21"), " (LLaVA-Next)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("4.41"), " (LLaVA-Next)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.35"), " (LLaVA-Next)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.44"), " (LLaVA-Next)"],
+            ["Mean on VQA dataset:", html.Br(), html.B("0.26"), " (LLaVA-Next)"],
+        )
 
 
 @callback(
@@ -1006,7 +1039,7 @@ RIGHT_UNCERTAINTY = [
                             dbc.Col(
                                 [
                                     html.I(
-                                        id = "sem_entropy_icon",
+                                        id="sem_entropy_icon",
                                         className="bi bi-arrows-move",
                                         style={
                                             "font-size": "50px",
@@ -1014,11 +1047,17 @@ RIGHT_UNCERTAINTY = [
                                             "vertical-align": "middle",
                                         },
                                     ),
-                                dbc.Tooltip(
-                                    ["Mean on VQA dataset:", html.Br(), html.B("1.2")," (LLaVA)"],
-                                    target="sem_entropy_icon",
-                                    placement = "top",
-                                )
+                                    dbc.Tooltip(
+                                        id="sem_entropy_tooltip",
+                                        children=[
+                                            "Mean on VQA dataset:",
+                                            html.Br(),
+                                            html.B("1.21"),
+                                            " (LLaVA)",
+                                        ],
+                                        target="sem_entropy_icon",
+                                        placement="top",
+                                    ),
                                 ],
                                 width=2,
                             ),
@@ -1036,15 +1075,21 @@ RIGHT_UNCERTAINTY = [
                             dbc.Col(
                                 [
                                     html.I(
-                                        id = "sem_cluster_icon",
+                                        id="sem_cluster_icon",
                                         className="bi bi-grid me-2",
                                         style={"font-size": "50px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset:", html.Br(), html.B("3.7")," (LLaVA)"],
+                                        id="sem_cluster_tooltip",
+                                        children=[
+                                            "Mean on VQA dataset:",
+                                            html.Br(),
+                                            html.B("4.90"),
+                                            " (LLaVA)",
+                                        ],
                                         target="sem_cluster_icon",
-                                        placement = "top",
-                                    )
+                                        placement="top",
+                                    ),
                                 ],
                                 width=2,
                             ),
@@ -1131,15 +1176,21 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
-                                        id = "atte_question_icon",
+                                        id="atte_question_icon",
                                         className="bi bi-question-square",
                                         style={"font-size": "30px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset:", html.Br(), html.B("0.21")," (LLaVA)"],
+                                        id="atte_question_tooltip",
+                                        children=[
+                                            "Mean on VQA dataset:",
+                                            html.Br(),
+                                            html.B("0.15"),
+                                            " (LLaVA)",
+                                        ],
                                         target="atte_question_icon",
-                                        placement = "top",
-                                    )
+                                        placement="top",
+                                    ),
                                 ],
                                 width=1,
                             ),
@@ -1157,7 +1208,7 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
-                                        id = "atte_image_icon",
+                                        id="atte_image_icon",
                                         className="bi bi-card-image me-2",
                                         style={
                                             "font-size": "30px",
@@ -1166,10 +1217,16 @@ RIGHT_ATTENTION = [
                                         },
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset:", html.Br(), html.B("0.52")," (LLaVA)"],
+                                        id="atte_image_tooltip",
+                                        children=[
+                                            "Mean on VQA dataset:",
+                                            html.Br(),
+                                            html.B("0.28"),
+                                            " (LLaVA)",
+                                        ],
                                         target="atte_image_icon",
-                                        placement = "top",
-                                    )
+                                        placement="top",
+                                    ),
                                 ],
                                 width=1,
                             ),
@@ -1187,15 +1244,21 @@ RIGHT_ATTENTION = [
                             dbc.Col(
                                 [
                                     html.I(
-                                        id = "atte_context_icon",
+                                        id="atte_context_icon",
                                         className="bi bi-card-text me-2",
                                         style={"font-size": "30px"},
                                     ),
                                     dbc.Tooltip(
-                                        ["Mean on VQA dataset:", html.Br(), html.B("0.36")," (LLaVA)"],
+                                        id="atte_context_tooltip",
+                                        children=[
+                                            "Mean on VQA dataset:",
+                                            html.Br(),
+                                            html.B("0.09"),
+                                            " (LLaVA)",
+                                        ],
                                         target="atte_context_icon",
-                                        placement = "top",
-                                    )
+                                        placement="top",
+                                    ),
                                 ],
                                 width=1,
                             ),
