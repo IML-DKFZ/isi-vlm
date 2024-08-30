@@ -41,11 +41,12 @@ ISI requires Python version 3.10 or later. All essential libraries for running t
 ```bash
 conda create -n isi-vlm python=3.10
 conda activate isi-vlm
+pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 —index-url https://download.pytorch.org/whl/cu118
 git clone https://github.com/link/to/repository
 cd isi-vlm
 pip install .
 ```
-Testing and development was done on CUDA 11.6. In theory the tool also runs on CPU only, but computations take significant longer. We recommend at least 24GB VRAM (e.g. RTX 3090). 
+Testing and development was done on CUDA 11.6. In theory the tool also runs on CPU only (please adapt pip install torch), but computations take significantly longer. We recommend at least 24GB VRAM (e.g. RTX 3090). 
 
 ## 🚀&nbsp;&nbsp;Getting started 
 ### 🏞️&nbsp;Using the ISI VQA dataset

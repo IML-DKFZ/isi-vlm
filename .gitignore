@@ -1,2 +1,5 @@
 .vscode
 **/__pycache__/
+**/_version.py
+/build
+isi_vlm.egg-info

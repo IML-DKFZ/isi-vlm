@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isi-vlm"
+dynamic = ["version"]
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "scikit-image",
+    "kaleido",
+    "bitsandbytes",
+    "sentencepiece",
+    "dash",
+    "dash_bootstrap_components",
+    "dash_daq",
+    "numpy",
+    "opencv_python",
+    "Pillow",
+    "plotly",
+    "Requests",
+    "transformers",
+    "pandas",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "ipython",
+]
+
+
+[tool.setuptools.packages.find]
+include = ["dash_app*"]
+
+[tool.setuptools_scm]
+write_to = "dash_app/_version.py"
+
