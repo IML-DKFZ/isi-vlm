@@ -134,11 +134,10 @@ def show_mask_on_image(img, mask):
 
 
 class MultiModalAttention:
-    def __init__(self, model, tokenizer, device):
-        # Determine device (CPU or GPU)
+    def __init__(self, model, processor, device):
         self.device = device
         self.model = model
-        self.tokenizer = tokenizer
+        self.processor = processor
 
     def __call__(self, attention_scores, prompt, description, question):
         llm_out_attn_matrix = get_out_attn_matrix(attention_scores)
@@ -154,6 +153,8 @@ class MultiModalAttention:
         if self.model.config.architectures[0] == "LlavaNextForConditionalGeneration":
             num_patches = self.model.image_end_pos - self.model.image_start_pos
             num_patches = num_patches.cpu().numpy()
+        elif self.model.config.architectures[0] == "PaliGemmaForConditionalGeneration":
+            num_patches = 1024
         else:
             image_size = vision_config.image_size
             patch_size = vision_config.patch_size
@@ -162,21 +163,25 @@ class MultiModalAttention:
 
     def get_positions(self, prompt, description, question):
         # the given prompt does not have the default vicuna instruction
-        image_start = len(
-            self.tokenizer(prompt.split("<image>")[0], return_tensors="pt")[
-                "input_ids"
-            ][0]
-        )
+        if "<image>" in prompt:
+            image_start = len(
+                self.processor.tokenizer(
+                    prompt.split("<image>")[0], return_tensors="pt"
+                )["input_ids"][0]
+            )
+        else:
+            image_start = 0
+
         image_end = image_start + self.get_image_tokens()
-        # print("Number of image tokens: ", self.get_image_tokens())
-        description_start = image_end + 1  # 1 is for the <image> token
+        description_start = image_end + 3  # For \n Token(s)
         description_end = description_start + len(
-            self.tokenizer(description, return_tensors="pt")["input_ids"][0]
+            self.processor.tokenizer(description, return_tensors="pt")["input_ids"][0]
         )
         question_start = description_end
         question_end = question_start + len(
-            self.tokenizer(question, return_tensors="pt")["input_ids"][0]
+            self.processor.tokenizer(question, return_tensors="pt")["input_ids"][0]
         )
+
         positions = {
             "image_start": image_start,
             "image_end": image_end,
@@ -191,8 +196,6 @@ class MultiModalAttention:
         self, llm_out_attn_matrix, prompt, description, question
     ):
         P = self.get_positions(prompt, description, question)
-        # print("Positions items: ", P)
-        # print("llm_out_attn_matrix size: ", llm_out_attn_matrix.size())
         # Normalize on the input tokens only (not the output tokens)
         attn_to_image = llm_out_attn_matrix[
             :-1, P["image_start"] : P["image_end"]
@@ -203,12 +206,11 @@ class MultiModalAttention:
         attn_to_question = llm_out_attn_matrix[
             :-1, P["question_start"] : P["question_end"]
         ]  #:-1 is to exclude the <eos> or </s> token
-        # print("attn_to_question size: ", attn_to_question.size())
-        # print("attn_to_question: ", attn_to_question[0, :10])
 
         scores = {
             "attn_I": torch.sum(attn_to_image).item(),
             "attn_T": torch.sum(attn_to_description).item(),
             "attn_Q": torch.sum(attn_to_question).item(),
         }
+
         return scores

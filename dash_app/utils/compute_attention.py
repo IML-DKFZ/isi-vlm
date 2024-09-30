@@ -93,6 +93,6 @@ def generate_attention(input_text, question, figure, llava_version, load_4bit):
 
     attention_scores = outputs["attentions"]
 
-    attention_model = MultiModalAttention(model, processor.tokenizer, device)
+    attention_model = MultiModalAttention(model, processor, device)
     answer_attn_scores = attention_model(attention_scores, prompt, input_text, question)
     return answer_attn_scores

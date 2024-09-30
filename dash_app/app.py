@@ -35,26 +35,6 @@ options = [
 
 NAVBAR = dbc.NavbarSimple(
     children=[
-        # dbc.Col(
-        #     html.Img(
-        #         src="./assets/eth_logo_kurz_neg.png",
-        #         height="26px",
-        #         style={"margin-right": "10px"},
-        #     )
-        # ),
-        # dbc.Col(html.H1("|", style={"color": "white"})),
-        # dbc.Col(
-        #     html.Img(
-        #         src="./assets/ibm_logo.png",
-        #         height="24px",
-        #         style={"margin-right": "35px", "margin-left": "10px"},
-        #     )
-        # ),
-        # dbc.NavbarBrand(
-        #         "LLaVa Interactive Semantic Perturbations",
-        #         style={"font-size": 25},
-        #         className="ms-2",
-        #     ),
         dbc.Row(
             [
                 dbc.Col(
@@ -114,7 +94,31 @@ NAVBAR = dbc.NavbarSimple(
             align="center",
         )
     ],
-    brand="Interactive Semantic Interventions for VLMs",
+    brand=
+    dbc.Row([
+    dbc.Col(
+            html.Img(
+                src="/assets/eth_logo_kurz_neg.png",
+                height="26px",
+                #style={"margin-right": "5px"},
+            ), width="auto"
+        ),
+        dbc.Col(html.H4("|", style={"color": "white"}), width="auto"),
+        dbc.Col(
+            html.Img(
+                src="/assets/ibm_logo.png",
+                height="24px",
+                #style={"margin-right": "35px", "margin-left": "10px"},
+            ), width="auto"
+        ),
+        dbc.Col(
+        dbc.NavbarBrand(
+                "LLaVa Interactive Semantic Perturbations",
+                style={"font-size": 24},
+                className="ms-2",
+            ), width="auto"
+        )
+    ]),
     brand_href="#",
     color="primary",
     dark=True,
@@ -147,30 +151,30 @@ LEFT_CONTAINER = [
                         ],
                         width=6,
                     ),
-                    dbc.Col(
-                        [
-                            html.P("Or upload image:"),
-                            dcc.Upload(
-                                id="upload-data",
-                                children=html.Div(
-                                    ["Drag and Drop or ", html.B("Select Image")]
-                                ),
-                                style={
-                                    "width": "100%",
-                                    "height": "60px",
-                                    "lineHeight": "60px",
-                                    "borderWidth": "1px",
-                                    "borderStyle": "dashed",
-                                    "borderRadius": "5px",
-                                    "textAlign": "center",
-                                    "margin": "10px",
-                                },
-                                # Allow multiple files to be uploaded
-                                multiple=False,
-                            ),
-                        ],
-                        width=6,
-                    ),
+                    # dbc.Col(
+                    #     [
+                    #         html.P("Or upload image:"),
+                    #         dcc.Upload(
+                    #             id="upload-data",
+                    #             children=html.Div(
+                    #                 ["Drag and Drop or ", html.B("Select Image")]
+                    #             ),
+                    #             style={
+                    #                 "width": "100%",
+                    #                 "height": "60px",
+                    #                 "lineHeight": "60px",
+                    #                 "borderWidth": "1px",
+                    #                 "borderStyle": "dashed",
+                    #                 "borderRadius": "5px",
+                    #                 "textAlign": "center",
+                    #                 "margin": "10px",
+                    #             },
+                    #             # Allow multiple files to be uploaded
+                    #             multiple=False,
+                    #         ),
+                    #     ],
+                    #     width=6,
+                    # ),
                     html.Hr(className="my-1"),
                 ]
             ),
@@ -1487,4 +1491,4 @@ app.layout = html.Div(children=[NAVBAR, BODY])
 
 # Run the app
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=None)
