@@ -4,8 +4,13 @@
     <img src="dash_app/assets/tool_screenshot.png" alt="Logo" width="600"> 
   </a>
 
-  <h1 align="center">ISI: Interactive Semantic Interventions for VLMs <br> <i>(REVIEWER VERSION)</i></h1>
+  <h1 align="center">ISI: Interactive Semantic Interventions for VLMs</h1>
+  <p align="center">
+      <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.10-3776AB?&logo=python&logoColor=white"></a>
+    <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/-PyTorch 2.3-EE4C2C?logo=pytorch&logoColor=white"></a>
+    <a href="https://black.readthedocs.io/en/stable"><img alt="L: Hydra" src="https://img.shields.io/badge/Code Style-Black-black" ></a>
 
+  </p>
   <p align="center">
 
 
@@ -16,14 +21,6 @@ ISI empowers researchers and end-users to gain deeper insights into VLM behavior
 
 > Abstract: <br>*Vision Language Models (VLMs), like ChatGPT-o and LLaVA, exhibit exceptional versatility across a wide array tasks due to their adaptable, language-based interface for input and output generation. However, our understanding of how VLMs integrate information from different modalities and especially how contradictory or complementary data affects their answer and reasoning generation is limited, leading to potential undetected hallucinations. These challenges undermine VLMs’ accuracy and reliability, as well as their development for effective integration of multipe data sources and modalities. Subsequently, we introduce Interactive Semantic Interventions (ISI), a tool designed to help researchers and users of VLMs understand how these models respond to interventions and semantic changes in both image and text modalities, specifically within the context of Visual Question Answering (VQA). Specifically, it offers an interface and pipeline for semantically meaningful interventions on both image and text, while quantitatively evaluating the generated output in terms of modality importance and model uncertainty. Alongside the tool we publish a specifically tailored VQA dataset including predefined presets for semantic meaningful interventions on image and text modalities. ISI empowers researchers and users to gain deeper insights and intuitions into VLM behavior, enabling more effective troubleshooting and a well evaluated basis setting for large scale VLM experiments.*
 
-
-## 📝&nbsp;&nbsp;Citing this Work
-
-If you use ISI please cite our [paper]()
-
-```bibtex
-@inproceedings{}
-```
 
 ## 🧭&nbsp;&nbsp;Table of Contents
 * [Installation](#Installation)
@@ -42,7 +39,7 @@ ISI requires Python version 3.10 or later. All essential libraries for running t
 conda create -n isi-vlm python=3.10
 conda activate isi-vlm
 pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 —index-url https://download.pytorch.org/whl/cu118
-git clone https://github.com/link/to/repository
+git clone https://github.com/IML-DKFZ/isi-vlm.git
 cd isi-vlm
 pip install .
 ```
@@ -108,3 +105,16 @@ The code is developed by the authors of the tool. However, it does also contain 
 - semantic_uncertainty by Jannik Kossen: https://github.com/jlko/semantic_uncertainty 
 
 The tool is developed in [Dash](https://github.com/plotly/dash) for Python.
+
+____
+
+<br>
+
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/ETH_Zürich_Logo_black.svg/2560px-ETH_Zürich_Logo_black.svg.png" width="140">&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="https://ai.ethz.ch/_jcr_content/orgbox/image.imageformat.logo.1864120785.png" width="100"> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://polybox.ethz.ch/index.php/s/kqDrOTTIzPFYPU7/download" width="70"> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://img.in-part.com/thumbnail?stripmeta=true&noprofile=true&quality=95&url=https%3A%2F%2Fs3-eu-west-1.amazonaws.com%2Fassets.in-part.com%2Funiversities%2F227%2FGdzZTi4yThyBhFzWlOxu_DKFZ_Logo-3zu-Research_en_Black-Blue_sRGB.png&width=750" width="100"> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://sightandsound.csail.mit.edu/assets/images/mit-ibmlockup-240x239.png" width="70"> &nbsp;&nbsp;&nbsp;&nbsp;
+</p>
+
