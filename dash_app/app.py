@@ -11,6 +11,9 @@ from skimage.util import random_noise
 import numpy as np
 import os
 import sys
+import base64
+import io
+from PIL import Image
 
 sys.path.append(os.getcwd())
 
@@ -94,31 +97,35 @@ NAVBAR = dbc.NavbarSimple(
             align="center",
         )
     ],
-    brand=
-    dbc.Row([
-    dbc.Col(
-            html.Img(
-                src="/assets/eth_logo_kurz_neg.png",
-                height="26px",
-                #style={"margin-right": "5px"},
-            ), width="auto"
-        ),
-        dbc.Col(html.H4("|", style={"color": "white"}), width="auto"),
-        dbc.Col(
-            html.Img(
-                src="/assets/ibm_logo.png",
-                height="24px",
-                #style={"margin-right": "35px", "margin-left": "10px"},
-            ), width="auto"
-        ),
-        dbc.Col(
-        dbc.NavbarBrand(
-                "LLaVa Interactive Semantic Perturbations",
-                style={"font-size": 24},
-                className="ms-2",
-            ), width="auto"
-        )
-    ]),
+    brand=dbc.Row(
+        [
+            dbc.Col(
+                html.Img(
+                    src="/assets/eth_logo_kurz_neg.png",
+                    height="26px",
+                    # style={"margin-right": "5px"},
+                ),
+                width="auto",
+            ),
+            dbc.Col(html.H4("|", style={"color": "white"}), width="auto"),
+            dbc.Col(
+                html.Img(
+                    src="/assets/ibm_logo.png",
+                    height="24px",
+                    # style={"margin-right": "35px", "margin-left": "10px"},
+                ),
+                width="auto",
+            ),
+            dbc.Col(
+                dbc.NavbarBrand(
+                    "LLaVA Interactive Semantic Perturbations",
+                    style={"font-size": 24},
+                    className="ms-2",
+                ),
+                width="auto",
+            ),
+        ]
+    ),
     brand_href="#",
     color="primary",
     dark=True,
@@ -151,30 +158,30 @@ LEFT_CONTAINER = [
                         ],
                         width=6,
                     ),
-                    # dbc.Col(
-                    #     [
-                    #         html.P("Or upload image:"),
-                    #         dcc.Upload(
-                    #             id="upload-data",
-                    #             children=html.Div(
-                    #                 ["Drag and Drop or ", html.B("Select Image")]
-                    #             ),
-                    #             style={
-                    #                 "width": "100%",
-                    #                 "height": "60px",
-                    #                 "lineHeight": "60px",
-                    #                 "borderWidth": "1px",
-                    #                 "borderStyle": "dashed",
-                    #                 "borderRadius": "5px",
-                    #                 "textAlign": "center",
-                    #                 "margin": "10px",
-                    #             },
-                    #             # Allow multiple files to be uploaded
-                    #             multiple=False,
-                    #         ),
-                    #     ],
-                    #     width=6,
-                    # ),
+                    dbc.Col(
+                        [
+                            html.P("Or upload image:"),
+                            dcc.Upload(
+                                id="upload-data",
+                                children=html.Div(
+                                    ["Drag and Drop or ", html.B("Select Image")]
+                                ),
+                                style={
+                                    "width": "100%",
+                                    "height": "60px",
+                                    "lineHeight": "60px",
+                                    "borderWidth": "1px",
+                                    "borderStyle": "dashed",
+                                    "borderRadius": "5px",
+                                    "textAlign": "center",
+                                    "margin": "10px",
+                                },
+                                # Allow multiple files to be uploaded
+                                multiple=False,
+                            ),
+                        ],
+                        width=6,
+                    ),
                     html.Hr(className="my-1"),
                 ]
             ),
@@ -618,19 +625,31 @@ def update_llava_version(n1, n2, n3):
 # Callbacks for left
 @callback(
     Output(component_id="input_question", component_property="value"),
-    Input(component_id="dropdown_obs", component_property="value"),
+    [
+        Input(component_id="dropdown_obs", component_property="value"),
+        Input(component_id="upload-data", component_property="contents"),
+    ],
 )
-def update_input_text(value):
-    text = files["question"].iloc[value]
+def update_input_text(value, contents):
+    if ctx.triggered[0]["prop_id"].split(".")[0] == "upload-data":
+        text = "Please enter your custom question here."
+    else:
+        text = files["question"].iloc[value]
     return text
 
 
 @callback(
     Output(component_id="input_text", component_property="value"),
-    Input(component_id="dropdown_obs", component_property="value"),
+    [
+        Input(component_id="dropdown_obs", component_property="value"),
+        Input(component_id="upload-data", component_property="contents"),
+    ],
 )
-def update_input_text(value):
-    text = files["complementary"].iloc[value]
+def update_input_text(value, contents):
+    if ctx.triggered[0]["prop_id"].split(".")[0] == "upload-data":
+        text = "Please enter your custom context here."
+    else:
+        text = files["complementary"].iloc[value]
     return text
 
 
@@ -677,10 +696,13 @@ def text_comp(n_clicks, value):
         Input(component_id="random_image_button", component_property="n_clicks"),
         Input(component_id="natural_image_button", component_property="n_clicks"),
         Input(component_id="annotated_image_button", component_property="n_clicks"),
+        Input(component_id="upload-data", component_property="contents"),
     ],
 )
-def update_gt_badge(value, n1_clicks, n2_clicks, n3_clicks):
-    if ctx.triggered[0]["prop_id"].split(".")[0] == "random_image_button":
+def update_gt_badge(value, n1_clicks, n2_clicks, n3_clicks, contents):
+    if (ctx.triggered[0]["prop_id"].split(".")[0] == "random_image_button") or (
+        ctx.triggered[0]["prop_id"].split(".")[0] == "upload-data"
+    ):
         return "?", "warning"
     else:
         gt = files["answer"].iloc[value]
@@ -692,16 +714,27 @@ def update_gt_badge(value, n1_clicks, n2_clicks, n3_clicks):
 
 @callback(
     Output(component_id="fig_perturb", component_property="figure"),
-    Input(component_id="dropdown_obs", component_property="value"),
+    [
+        Input(component_id="dropdown_obs", component_property="value"),
+        Input(component_id="upload-data", component_property="contents"),
+    ],
     State("color_picker", "value"),
 )
-def fig_perturb(value, color_value):
+def fig_perturb(value, contents, color_value):
 
-    fig = px.imshow(
-        skimage.io.imread(
-            "./dash_app/assets/natural_images/" + files["image"].iloc[value]
+    if ctx.triggered[0]["prop_id"].split(".")[0] == "upload-data":
+        content_type, content_string = contents.split(",")
+        decoded = base64.b64decode(content_string)
+        img = Image.open(io.BytesIO(decoded))
+        fig = px.imshow(np.array(img, dtype=float), binary_string=True)
+
+    else:
+        fig = px.imshow(
+            skimage.io.imread(
+                "./dash_app/assets/natural_images/" + files["image"].iloc[value]
+            )
         )
-    )
+
     fig.update_layout(
         newshape=dict(
             fillcolor=color_value, opacity=1.0, line=dict(color="black", width=0)
@@ -1455,25 +1488,6 @@ BODY = dbc.Container(
                                 dbc.Col(dbc.Card(RIGHT_ATTENTION), width=6),
                             ]
                         ),
-                        dbc.Row(
-                            dbc.Col(
-                                dbc.Button(
-                                    [
-                                        html.I(
-                                            className="bi bi-download",
-                                            style={"margin-right": "10px"},
-                                        ),
-                                        "Download Report",
-                                    ],
-                                    # href="/static/data_file.txt",
-                                    # download="my_data.txt",
-                                    # external_link=True,
-                                    color="success",
-                                    style={"margin-top": "20px"},
-                                ),
-                                width=12,
-                            ),
-                        ),
                     ],
                     width=6,
                 ),
@@ -1491,4 +1505,4 @@ app.layout = html.Div(children=[NAVBAR, BODY])
 
 # Run the app
 if __name__ == "__main__":
-    app.run(debug=None)
+    app.run(debug=True)
