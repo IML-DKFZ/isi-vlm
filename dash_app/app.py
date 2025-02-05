@@ -100,23 +100,6 @@ NAVBAR = dbc.NavbarSimple(
     brand=dbc.Row(
         [
             dbc.Col(
-                html.Img(
-                    src="/assets/eth_logo_kurz_neg.png",
-                    height="26px",
-                    # style={"margin-right": "5px"},
-                ),
-                width="auto",
-            ),
-            dbc.Col(html.H4("|", style={"color": "white"}), width="auto"),
-            dbc.Col(
-                html.Img(
-                    src="/assets/ibm_logo.png",
-                    height="24px",
-                    # style={"margin-right": "35px", "margin-left": "10px"},
-                ),
-                width="auto",
-            ),
-            dbc.Col(
                 dbc.NavbarBrand(
                     "LLaVA Interactive Semantic Perturbations",
                     style={"font-size": 24},
